@@ -112,7 +112,8 @@ namespace net.nutcore.aliddns
                             new XElement("add", new XAttribute("key", "logautosave"), new XAttribute("value", "Off")),
                             new XElement("add", new XAttribute("key", "TTL"), new XAttribute("value", "600")),
                             new XElement("add", new XAttribute("key", "autoCheckUpdate"), new XAttribute("value", "Off")),
-                            new XElement("add", new XAttribute("key", "ngrokauto"), new XAttribute("value", "Off"))
+                            new XElement("add", new XAttribute("key", "ngrokauto"), new XAttribute("value", "Off")),
+                            new XElement("add", new XAttribute("key", "ngrokexists"), new XAttribute("value", "Off"))
                         )
                 )
             );

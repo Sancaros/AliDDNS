@@ -89,20 +89,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppConfigHelper.cs" />
+    <Compile Include="Form_tunnelEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_tunnelEdit.Designer.cs">
+      <DependentUpon>Form_tunnelEdit.cs</DependentUpon>
+    </Compile>
     <Compile Include="YamlHelper.cs" />
     <Compile Include="EncryptHelper.cs" />
-    <Compile Include="Form_About.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Form_About.Designer.cs">
-      <DependentUpon>Form_About.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Form_ngrok.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Form_ngrok.Designer.cs">
-      <DependentUpon>Form_ngrok.cs</DependentUpon>
-    </Compile>
     <Compile Include="Form_main.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -112,11 +106,8 @@
     <Compile Include="NgrokHelper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="Form_About.resx">
-      <DependentUpon>Form_About.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Form_ngrok.resx">
-      <DependentUpon>Form_ngrok.cs</DependentUpon>
+    <EmbeddedResource Include="Form_tunnelEdit.resx">
+      <DependentUpon>Form_tunnelEdit.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Form_main.resx">
       <DependentUpon>Form_main.cs</DependentUpon>

@@ -10,8 +10,9 @@
 
 namespace net.nutcore.aliddns.Properties {
     using System;
-    
-    
+    using System.Drawing;
+
+
     /// <summary>
     ///   一个强类型的资源类，用于查找本地化的字符串等。
     /// </summary>
@@ -45,7 +46,12 @@ namespace net.nutcore.aliddns.Properties {
                 return resourceMan;
             }
         }
-        
+
+        internal static Icon GetObject(string v)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         ///   使用此强类型资源类，为所有资源查找
         ///   重写当前线程的 CurrentUICulture 属性。

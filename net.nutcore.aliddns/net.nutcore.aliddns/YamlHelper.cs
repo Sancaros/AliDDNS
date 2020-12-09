@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace net.nutcore.aliddns
 {
-    class Yaml
+    class YamlHelper
     {
         // 所有行
         private String[] lines;
@@ -16,40 +16,50 @@ namespace net.nutcore.aliddns
         // 文件所在地址
         private String path;
 
-        public Yaml(String path)
+        public YamlHelper(String path)
         {
             this.path = path;
-            this.lines = File.ReadAllLines(path);
-
-            for (int i = 0; i < lines.Length; i++)
+            if (!File.Exists(this.path))
             {
-                String line = lines[i];
-                if (line.Trim() == "")
+                StreamWriter stream = File.CreateText(this.path);
+                stream.Flush();
+                stream.Close();
+            }
+            else
+            {
+                this.lines = File.ReadAllLines(path);
+
+                for (int i = 0; i < lines.Length; i++)
                 {
-                    Console.WriteLine("空白行，行号：" + (i + 1));
-                    continue;
-                }
-                else if (line.Trim().Substring(0, 1) == "#")
-                {
-                    Console.WriteLine("注释行，行号：" + (i + 1));
-                    continue;
+                    String line = lines[i];
+                    if (line.Trim() == "")
+                    {
+                        Console.WriteLine("空白行，行号：" + (i + 1));
+                        continue;
+                    }
+                    else if (line.Trim().Substring(0, 1) == "#")
+                    {
+                        Console.WriteLine("注释行，行号：" + (i + 1));
+                        continue;
+                    }
+
+                    String[] kv = Regex.Split(line, ":", RegexOptions.IgnoreCase);
+                    findPreSpace(line);
+                    Node node = new Node();
+                    node.space = findPreSpace(line);
+                    node.name = kv[0].Trim();
+
+                    // 去除前后空白符
+                    String fline = line.Trim();
+                    int first = fline.IndexOf(':');
+                    node.value = first == fline.Length - 1 ? null : fline.Substring(first + 2, fline.Length - first - 2);
+                    node.parent = findParent(node.space);
+                    nodeList.Add(node);
                 }
 
-                String[] kv = Regex.Split(line, ":", RegexOptions.IgnoreCase);
-                findPreSpace(line);
-                Node node = new Node();
-                node.space = findPreSpace(line);
-                node.name = kv[0].Trim();
-
-                // 去除前后空白符
-                String fline = line.Trim();
-                int first = fline.IndexOf(':');
-                node.value = first == fline.Length - 1 ? null : fline.Substring(first + 2, fline.Length - first - 2);
-                node.parent = findParent(node.space);
-                nodeList.Add(node);
+                this.formatting();
             }
 
-            this.formatting();
         }
 
         // 修改值 允许key为多级 例如：spring.datasource.url

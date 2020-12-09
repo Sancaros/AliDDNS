@@ -25,7 +25,7 @@ namespace net.nutcore.aliddns
             {
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new mainForm());
+                Application.Run(new Form_main());
             }
             else
             {

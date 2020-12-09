@@ -3,6 +3,7 @@ using Aliyun.Acs.Core;
 using Aliyun.Acs.Core.Exceptions;
 using Aliyun.Acs.Core.Profile;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -13,16 +14,17 @@ using static Aliyun.Acs.Alidns.Model.V20150109.DescribeSubDomainRecordsResponse;
 
 namespace net.nutcore.aliddns
 {
-    public partial class mainForm : Form
+    public partial class Form_main : Form
     {
         public static bool checkUpdate;
         static IClientProfile clientProfile;
         static DefaultAcsClient client;
         //初始化ngrok操作类
         private NgrokHelper ngrok = new NgrokHelper();
+        //初始化appconfig操作类
         private AppConfigHelper cfg = new AppConfigHelper();
 
-        public mainForm()
+        public Form_main()
         {
             InitializeComponent();
             this.MinimizeBox = false; //取消窗口最小化按钮
@@ -34,7 +36,7 @@ namespace net.nutcore.aliddns
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void mainForm_Load(object sender, EventArgs e)
+        private void Form_main_Load(object sender, EventArgs e)
         {
             //获取当前用户名和计算机名并写入日志
             textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "计算机名: " + System.Environment.UserDomainName + "\r\n");
@@ -75,7 +77,7 @@ namespace net.nutcore.aliddns
             textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "当前用户需要文件写入和注册表操作权限，否则相关参数不起作用！" + "\r\n");
             
             //读取设置文件aliddns_config.xml
-            if (readConfigFile())
+            if (appConfig_Load())
             {
                 string ExePath = System.AppDomain.CurrentDomain.BaseDirectory;
                 string updateExe = ExePath + "update.exe";
@@ -114,21 +116,50 @@ namespace net.nutcore.aliddns
                     updatePrepare();
                 }
             }
-            notifyIcon_sysTray_Update(); //监测网络状态、刷新系统托盘图标
+            //读取updateinfo.txt文件
+            textBox_updateInfo.ReadOnly = true;
+            string filePath = System.AppDomain.CurrentDomain.BaseDirectory;
+            string updateInfoFile = filePath + "updateinfo.txt";
+            if (File.Exists(updateInfoFile))
+            {
+                textBox_updateInfo.Text = File.ReadAllText(updateInfoFile, Encoding.Default);
+            }
+            else
+            {
+                textBox_updateInfo.Text = "软件运行目录下没有找到updateinfo.txt文件！";
+            }
+
+            //版本检查
+            label_currentVer.Text = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(); //获取当前版本
+            if (Form_main.checkUpdate == true)
+            {
+                checkBox_autoCheckUpdate.Checked = true;
+                //获取远程版本信息
+                string strVer = Form_main.verCheckUpdate();
+                label_latestVer.Text = strVer.ToString();
+            }
+            else
+            {
+                checkBox_autoCheckUpdate.Checked = false;
+            }
+            //读取ngrok配置文件
+            ngrokConfig_Load();
+            //监测网络状态、刷新系统托盘图标
+            notifyIcon_sysTray_Update();
         }
 
         /// <summary>
         /// 读取配置文件并初始化控件
         /// </summary>
         /// <returns></returns>
-        private bool readConfigFile()
+        private bool appConfig_Load()
         {
             try
             {
                 textBox_accessKeyId.Text = EncryptHelper.AESDecrypt(cfg.GetAppSetting("AccessKeyID").ToString());
                 textBox_accessKeySecret.Text = EncryptHelper.AESDecrypt(cfg.GetAppSetting("AccessKeySecret").ToString());
                 textBox_recordId.Text = cfg.GetAppSetting("RecordID").ToString();
-                fullDomainName.Text = cfg.GetAppSetting("fullDomainName").ToString();
+                textBox_fullDomainName.Text = cfg.GetAppSetting("fullDomainName").ToString();
                 label_nextUpdateSeconds.Text = textBox_newSeconds.Text = cfg.GetAppSetting("WaitingTime").ToString();
                 if (cfg.GetAppSetting("autoUpdate").ToString() == "On") checkBox_autoUpdate.Checked = true;
                 else checkBox_autoUpdate.Checked = false;
@@ -156,16 +187,12 @@ namespace net.nutcore.aliddns
                 if (cfg.GetAppSetting("autoCheckUpdate").ToString() == "On") checkUpdate = true;
                 else checkUpdate = false;
 
-                if (cfg.GetAppSetting("ngrokauto").ToString() == "On")
-                {
-                    checkBox_ngrok.Checked = true;
-                    button_ngrok.Enabled = false;
-                }
-                else
-                {
-                    checkBox_ngrok.Checked = false;
-                    button_ngrok.Enabled = true;
-                }
+                if (cfg.GetAppSetting("ngrokauto").ToString() == "On") checkBox_ngrokAuto.Checked = true;
+                else checkBox_ngrokAuto.Checked = false;
+
+                if (cfg.GetAppSetting("ngrokexists").ToString() == "On") checkBox_ngrokExists.Checked = true;
+                else checkBox_ngrokExists.Checked = false;
+
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "设置文件读取成功！" + "\r\n");
                 return true;
             }
@@ -236,7 +263,7 @@ namespace net.nutcore.aliddns
         /// <returns></returns>
         private bool getRecordId()
         {
-            if(textBox_accessKeyId.Text.ToString()==null||textBox_accessKeySecret.Text.ToString()==null||fullDomainName.Text.ToString()==null||textBox_TTL.Text.ToString()==null||textBox_newSeconds.Text.ToString()==null)
+            if(textBox_accessKeyId.Text.ToString()==null||textBox_accessKeySecret.Text.ToString()==null||textBox_fullDomainName.Text.ToString()==null||textBox_TTL.Text.ToString()==null||textBox_newSeconds.Text.ToString()==null)
             {
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "请检查设置，不能为空！" + "\r\n");
                 return false;
@@ -244,7 +271,7 @@ namespace net.nutcore.aliddns
             clientProfile = DefaultProfile.GetProfile("cn-hangzhou", textBox_accessKeyId.Text.ToString(), textBox_accessKeySecret.Text.ToString());
             client = new DefaultAcsClient(clientProfile);
             DescribeSubDomainRecordsRequest request = new DescribeSubDomainRecordsRequest();
-            request.SubDomain = fullDomainName.Text;
+            request.SubDomain = textBox_fullDomainName.Text;
             try
             {
                 DescribeSubDomainRecordsResponse response = client.GetAcsResponse(request);
@@ -264,9 +291,9 @@ namespace net.nutcore.aliddns
                         textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "阿里云DNS服务返回RecordId:" + i.ToString() + " RecordId：" + record.RecordId + "\r\n");
                         textBox_recordId.Text = record.RecordId;
                         cfg.SaveAppSetting("RecordID", record.RecordId.ToString());
-                        globalRR.Text = record.RR;
-                        globalDomainType.Text = record.Type;
-                        globalValue.Text = domainIP.Text = record.Value;
+                        label_globalRR.Text = record.RR;
+                        label_globalDomainType.Text = record.Type;
+                        label_globalValue.Text = label_domainIP.Text = record.Value;
                         label_TTL.Text = Convert.ToString(record.TTL);
                         label_DomainIpStatus.Text = "已绑定";
                         label_DomainIpStatus.ForeColor = System.Drawing.Color.FromArgb(0, 0, 0, 255);
@@ -309,19 +336,19 @@ namespace net.nutcore.aliddns
                 string fullDomain = response.RR.ToString() + "." + response.DomainName.ToString();
                 if (response.Value != "0.0.0.0")
                 {
-                    if(fullDomain != fullDomainName.Text.ToString())
+                    if(fullDomain != textBox_fullDomainName.Text.ToString())
                     {
                         textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "阿里云DNS域名记录:"+ response.RecordId + " 对应域名为:" + fullDomain + "\r\n");
-                        textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "配置文件域名记录:" + textBox_recordId.Text.ToString() + " 对应域名为:" + fullDomainName.Text.ToString() + "\r\n");
+                        textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "配置文件域名记录:" + textBox_recordId.Text.ToString() + " 对应域名为:" + textBox_fullDomainName.Text.ToString() + "\r\n");
                         textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "配置文件设置错误！可能原因是修改域名记录后未及时添加，已经自动修改配置文件与服务器记录一致！" + "\r\n");
-                        fullDomainName.Text = fullDomain;
+                        textBox_fullDomainName.Text = fullDomain;
                         cfg.SaveAppSetting("fullDomainName", fullDomain);
                     }
                     textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "域名:" + response.RR + "." + response.DomainName + " 已经绑定IP:" + response.Value + "\r\n");
                     textBox_recordId.Text = response.RecordId;
-                    globalRR.Text = response.RR;
-                    globalDomainType.Text = response.Type;
-                    globalValue.Text = response.Value;
+                    label_globalRR.Text = response.RR;
+                    label_globalDomainType.Text = response.Type;
+                    label_globalValue.Text = response.Value;
                     label_TTL.Text = Convert.ToString(response.TTL);
                     label_DomainIpStatus.Text = "已绑定";
                     label_DomainIpStatus.ForeColor = System.Drawing.Color.FromArgb(0, 0, 0, 255);
@@ -354,7 +381,7 @@ namespace net.nutcore.aliddns
         private void updateDomainRecord()
         {
             string[] symbols = new string[1] { "." };
-            string[] data = fullDomainName.Text.Split(symbols, 30, StringSplitOptions.RemoveEmptyEntries);
+            string[] data = textBox_fullDomainName.Text.Split(symbols, 30, StringSplitOptions.RemoveEmptyEntries);
             string domainRR = data[0];
             string domainName = data[1] + "." + data[2];
 
@@ -365,16 +392,16 @@ namespace net.nutcore.aliddns
             request.RR = domainRR;
             request.RecordId = textBox_recordId.Text;
             request.TTL = Convert.ToInt32(textBox_TTL.Text);
-            request.Value = localIP.Text;
+            request.Value = label_localIP.Text;
             try
             {
-                textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "正在将WAN口IP:" + localIP.Text + "与域名" + fullDomainName.Text + "绑定..." + "\r\n");
+                textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "正在将WAN口IP:" + label_localIP.Text + "与域名" + textBox_fullDomainName.Text + "绑定..." + "\r\n");
                 UpdateDomainRecordResponse response = client.GetAcsResponse(request);
                 if (response.RecordId != null)
                 {
-                    domainIP.Text = localIP.Text; //更新窗体数据
+                    label_domainIP.Text = label_localIP.Text; //更新窗体数据
                     textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "域名绑定IP更新成功！" + "\r\n");
-                    if (checkBox_ngrok.Checked == true)
+                    if (checkBox_ngrokAuto.Checked == true)
                     {
                         //button_ngrok.Enabled = false;
                         //cfg.SaveAppSetting("ngrokauto", "On");
@@ -416,7 +443,7 @@ namespace net.nutcore.aliddns
         private bool addDomainRecord()
         {
             string[] symbols = new string[1] { "." };
-            string[] data = fullDomainName.Text.Split(symbols, 30, StringSplitOptions.RemoveEmptyEntries);
+            string[] data = textBox_fullDomainName.Text.Split(symbols, 30, StringSplitOptions.RemoveEmptyEntries);
             string domainRR = data[0];
             string domainName = data[1] + "." + data[2];
 
@@ -427,32 +454,32 @@ namespace net.nutcore.aliddns
             request.RR = domainRR;
             request.DomainName = domainName;
             request.TTL = Convert.ToInt32(textBox_TTL.Text);
-            request.Value = localIP.Text;
+            request.Value = label_localIP.Text;
             try
             {
-                textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "正在向阿里云DNS服务添加域名:" + fullDomainName.Text + "\r\n");
+                textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "正在向阿里云DNS服务添加域名:" + textBox_fullDomainName.Text + "\r\n");
                 AddDomainRecordResponse response = client.GetAcsResponse(request);
                 if (response.RecordId != null)
                 {
-                    textBox_log.AppendText(System.DateTime.Now.ToString() + " " + " 域名：" + fullDomainName.Text + "添加成功！" + "服务器返回RecordId:" + response.RecordId  + "\r\n");
+                    textBox_log.AppendText(System.DateTime.Now.ToString() + " " + " 域名：" + textBox_fullDomainName.Text + "添加成功！" + "服务器返回RecordId:" + response.RecordId  + "\r\n");
                     textBox_recordId.Text = response.RecordId.ToString();
                     cfg.SaveAppSetting("RecordID", response.RecordId.ToString());
-                    globalDomainType.Text = request.Type;
-                    globalRR.Text = request.RR;
-                    globalValue.Text = domainIP.Text = request.Value;
+                    label_globalDomainType.Text = request.Type;
+                    label_globalRR.Text = request.RR;
+                    label_globalValue.Text = label_domainIP.Text = request.Value;
                     label_DomainIpStatus.Text = "已绑定";
                     label_DomainIpStatus.ForeColor = System.Drawing.Color.FromArgb(0, 0, 0, 255);
                     return true;
                 }
                 else
                 {
-                    textBox_log.AppendText(System.DateTime.Now.ToString() + " " + " 域名：" + fullDomainName.Text + "添加失败！" + "\r\n");
+                    textBox_log.AppendText(System.DateTime.Now.ToString() + " " + " 域名：" + textBox_fullDomainName.Text + "添加失败！" + "\r\n");
                     label_DomainIpStatus.Text = "未绑定";
-                    domainIP.Text = "0.0.0.0";
+                    label_domainIP.Text = "0.0.0.0";
                     textBox_recordId.Text = "null";
-                    globalRR.Text = "null";
-                    globalDomainType.Text = "null";
-                    globalValue.Text = "null";
+                    label_globalRR.Text = "null";
+                    label_globalDomainType.Text = "null";
+                    label_globalValue.Text = "null";
                     label_TTL.Text = "null";
                     label_DomainIpStatus.ForeColor = System.Drawing.Color.FromArgb(255, 255, 0, 0);
                     return false;
@@ -485,24 +512,24 @@ namespace net.nutcore.aliddns
             string[] arrayUrl = cfg.GetAppSetting("whatIsUrl").ToString().Split(',');
             foreach (string strUrl in arrayUrl)
             {
-                if ((localIP.Text = getWanIP(strUrl)) != "0.0.0.0")
+                if ((label_localIP.Text = getWanIP(strUrl)) != "0.0.0.0")
                 {
                     break;
                 }
             }
-            if(localIP.Text.ToString() == "0.0.0.0")
+            if(label_localIP.Text.ToString() == "0.0.0.0")
             {
-                textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "WAN口IP:" + localIP.Text + "，域名绑定IP更新停止，请检查查询网址设置或者手工指定IP！" + "\r\n");
+                textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "WAN口IP:" + label_localIP.Text + "，域名绑定IP更新停止，请检查查询网址设置或者手工指定IP！" + "\r\n");
                 return;
             }
-            domainIP.Text = getAliDnsRecordDomainIP();
-            if (domainIP.Text == localIP.Text)
+            label_domainIP.Text = getAliDnsRecordDomainIP();
+            if (label_domainIP.Text == label_localIP.Text)
             {
-                textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "WAN口IP:" + localIP.Text + " 与域名绑定IP:" + domainIP.Text + "一致，无需更新！" + "\r\n");
+                textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "WAN口IP:" + label_localIP.Text + " 与域名绑定IP:" + label_domainIP.Text + "一致，无需更新！" + "\r\n");
             }
             else
             {
-                textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "WAN口IP:" + localIP.Text + " 与域名绑定IP:" + domainIP.Text + "不一致，需要更新！" + "\r\n");
+                textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "WAN口IP:" + label_localIP.Text + " 与域名绑定IP:" + label_domainIP.Text + "不一致，需要更新！" + "\r\n");
                 updateDomainRecord();
             }
             //localIP.Text = getWanIP();
@@ -574,7 +601,7 @@ namespace net.nutcore.aliddns
             }
         }
 
-        private void mainForm_FormClosing(object sender, FormClosingEventArgs e)
+        private void Form_main_FormClosing(object sender, FormClosingEventArgs e)
         {
             e.Cancel = true; //取消关闭窗体
             this.WindowState = FormWindowState.Minimized; //窗体最小化
@@ -584,7 +611,7 @@ namespace net.nutcore.aliddns
         private void button_whatIsTest_Click(object sender, EventArgs e)
         {
             textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "开始向网址发起查询... " + "\r\n");
-            localIP.Text = getWanIP(comboBox_whatIsUrl.Text.ToString().Trim());
+            label_localIP.Text = getWanIP(comboBox_whatIsUrl.Text.ToString().Trim());
             notifyIcon_sysTray_Update(); //监测网络状态、刷新系统托盘图标
         }
 
@@ -632,12 +659,6 @@ namespace net.nutcore.aliddns
             {
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "运行出错！信息: " + error + "\r\n");
             }
-        }
-
-        private void ToolStripMenuItem_About_Click(object sender, EventArgs e)
-        {
-            Form_About about = new Form_About();
-            about.Show(this);
         }
 
         private void checkBox_logAutoSave_CheckedChanged(object sender, EventArgs e)
@@ -721,7 +742,7 @@ namespace net.nutcore.aliddns
                 string strIn = maskedTextBox_setIP.Text;
                 if (Regex.IsMatch(strIn, @"^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$"))
                 {
-                    localIP.Text = maskedTextBox_setIP.Text;
+                    label_localIP.Text = maskedTextBox_setIP.Text;
                     updateDomainRecord();
                     //getDomainIP();
                 }
@@ -754,7 +775,7 @@ namespace net.nutcore.aliddns
                 else
                 {
                     this.notifyIcon_sysTray.Icon = Properties.Resources.alidns_yellow;
-                    if( localIP.Text == domainIP.Text )
+                    if( label_localIP.Text == label_domainIP.Text )
                         this.notifyIcon_sysTray.Icon = Properties.Resources.alidns_green;
                 }
             }
@@ -816,12 +837,11 @@ namespace net.nutcore.aliddns
                 MessageBox.Show("获取新版本信息失败！");
         }
 
-        private void checkBox_ngrok_CheckedChanged(object sender, EventArgs e)
+        private void checkBox_ngrokAuto_CheckedChanged(object sender, EventArgs e)
         {
             
-            if (checkBox_ngrok.Checked == true)
+            if (checkBox_ngrokAuto.Checked == true)
             {
-                button_ngrok.Enabled = false;
                 cfg.SaveAppSetting("ngrokauto", "On");
                 //检测ngrok.exe是否存在
                 if (ngrok.IsExists())
@@ -838,29 +858,50 @@ namespace net.nutcore.aliddns
             {
                 cfg.SaveAppSetting("ngrokauto", "Off");
                 ngrok.Stop();
-                button_ngrok.Enabled = true;
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "Ngrok功能关闭，再次启动将不会加载！" + "\r\n");
             }
         }
 
-        private void button_ngrok_Click(object sender, EventArgs e)
+        private void checkBox_ngrokExists_CheckedChanged(object sender, EventArgs e)
         {
-            Form_ngrok ngrok = new Form_ngrok();
-            ngrok.Show(this);
+            if (checkBox_ngrokExists.Checked == true)
+            {
+                cfg.SaveAppSetting("ngrokexists", "On");
+                //检测ngrok.exe是否存在
+                if (ngrok.IsExists())
+                {
+                    textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "启动时检测ngrok.exe是否存在。" + "\r\n");
+                }
+                else
+                {
+                    textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "软件运行目录没有发现ngrok.exe，请往官网下载自行编译：https://ngrok.com/download" + "\r\n");
+                }
+            }
+            else
+            {
+                cfg.SaveAppSetting("ngrokexists", "Off");
+                ngrok.Stop();
+                textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "启动时不再检测ngrok.exe是否存在。" + "\r\n");
+            }
         }
 
-        private void mainForm_Shown(object sender, EventArgs e)
+        private void Form_main_Shown(object sender, EventArgs e)
         {
-            //检测ngrok.exe是否存在
-            if (( checkBox_ngrok.Checked == true ) && ( !ngrok.IsExists() ))
+            //提醒ngrok.exe是否存在
+            if ( checkBox_ngrokExists.Checked == true )
             {
-                MessageBox.Show("软件运行目录没有发现ngrok.exe，请往官网下载自行编译。\nNgrok官网：https://ngrok.com/download");
+                //检测ngrok.exe是否存在
+                if (!ngrok.IsExists())
+                {
+                    textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "软件运行目录没有发现ngrok.exe，请往官网下载自行编译：https://ngrok.com/download" + "\r\n");
+                    MessageBox.Show("软件运行目录没有发现ngrok.exe，请往官网下载自行编译。\nNgrok官网：https://ngrok.com/download");
+                }                
             }
         }
 
         private void fullDomainName_Leave(object sender, EventArgs e)
         {
-            cfg.SaveAppSetting("fullDomainName", this.fullDomainName.Text.ToString());
+            cfg.SaveAppSetting("fullDomainName", this.textBox_fullDomainName.Text.ToString());
             textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "域名已经保存，点击测试连接将查询域名是否存在，当不存在时点击添加域名会创建新域名记录！" + "\r\n");
         }
 
@@ -913,6 +954,211 @@ namespace net.nutcore.aliddns
             comboBox_whatIsUrl.Items.Add(newItem);
             cfg.AddAppSetting("whatIsUrl", newItem);
             textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "新增公网IP查询网址保存成功！" + "\r\n");
+        }
+
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            System.Diagnostics.Process.Start("explorer.exe", "https://github.com/wisdomwei201804/AliDDNS/");
+        }
+
+        private void checkBox_autoCheckUpdate_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox_autoCheckUpdate.Checked == true)
+            {
+                cfg.SaveAppSetting("autoCheckUpdate", "On");
+                textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "软件自动检测升级启用！" + "\r\n");
+            }
+            else
+            {
+                cfg.SaveAppSetting("autoCheckUpdate", "Off");
+                textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "软件自动检测升级关闭！" + "\r\n");
+            }
+        }
+        private void button_ngrokApply_Click(object sender, EventArgs e)
+        {
+            if (ngrok.IsExists())
+            {
+                textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "Ngrok穿透功能已经启动！\r\n本机浏览器打开：http://127.0.0.1:4040 查看运行状态。" + "\r\n");
+                ngrok.Start();
+            }
+            else
+            {
+                MessageBox.Show("设置在当前目录没有发现ngrok.exe，请往官网下载自行编译。\nNgrok官网：https://ngrok.com/download");
+            }
+            
+        }
+
+        private void ngrokConfig_Load()
+        {
+            //读取配置文件
+            try
+            {
+                textBox_AuthToken.Text = ngrok.ngrokConfig.authtoken;
+                textBox_serverAddr.Text = ngrok.ngrokConfig.server_addr;
+                //List<NgrokHelper.Protocol> tunnel = new List<NgrokHelper.Protocol>();
+                ArrayList row = new ArrayList();
+                Dictionary<object,object> tunnelItems = (Dictionary<object, object>)ngrok.ngrokConfig.tunnels;
+                int count = tunnelItems.Count;
+                int k = 0;
+                foreach (KeyValuePair<object, object> kvp in tunnelItems)
+                {
+                    row.Add(kvp.Key); 
+                    Dictionary<object, object> items = (Dictionary<object, object>)kvp.Value;
+                    foreach (KeyValuePair<object, object> items_kvp in items)
+                    {
+                        if(items_kvp.Key.ToString() == "proto")
+                        {
+                            Dictionary<object, object> protos = (Dictionary<object, object>)items_kvp.Value;
+                            foreach (KeyValuePair<object, object> protos_kvp in protos)
+                            {
+                                row.Add(protos_kvp.Key);
+                                row.Add(protos_kvp.Value);
+                                if(protos_kvp.Key.ToString() == "http" || protos_kvp.Key.ToString() == "https")
+                                {
+                                    row.Add(null);
+                                }
+                            }
+                        }
+                        if (items_kvp.Key.ToString() == "subdomain")
+                        {
+                            row.Add(items_kvp.Value);
+                        }
+                        if (items_kvp.Key.ToString() == "remote_port")
+                        {
+                            row.Add(items_kvp.Value);
+                            row.Add(null);
+                        }
+                    }
+                }
+
+                listView_ngrok.BeginUpdate();   //数据更新，UI暂时挂起，直到EndUpdate绘制控件，可以有效避免闪烁并大大提高加载速度
+                for (int i = 1; i <= count; i++)   //添加数据
+                {
+                    ListViewItem lvi = new ListViewItem();
+                    //lvi.ImageIndex = i;     //通过与imageList绑定，显示imageList中第i项图标
+                    lvi.Text = i.ToString();
+                    for (int j = 2; j <= 6; j++)
+                    {
+                        lvi.SubItems.Add((string)row[k]);
+                        k++;
+                    }
+                    listView_ngrok.Items.Add(lvi);
+                }
+                listView_ngrok.EndUpdate();  //结束数据处理，UI界面一次性绘制。
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show("配置文件ngrok.cfg读取出错！请修改文件内容或者格式，也可以删除错误文件自动生成新文件。" + error, "警告", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void button_ngrokSave_Click(object sender, EventArgs e)
+        {
+            Dictionary<object,object> tunnel_saved = new Dictionary<object, object>();
+            
+
+            for (int i = 0; i < listView_ngrok.Items.Count; i++)
+            {
+                Dictionary<object, object> item_saved = new Dictionary<object, object>();
+                Dictionary<object, object> proto_saved = new Dictionary<object, object>();
+
+                if (listView_ngrok.Items[i].SubItems[2].Text == "http")
+                {
+                    proto_saved.Add("http", listView_ngrok.Items[i].SubItems[3].Text);
+                    item_saved.Add("proto", proto_saved);
+                    item_saved.Add("subdomain", listView_ngrok.Items[i].SubItems[5].Text);
+                }
+                if (listView_ngrok.Items[i].SubItems[2].Text == "https")
+                {
+                    proto_saved.Add("https", listView_ngrok.Items[i].SubItems[3].Text);
+                    item_saved.Add("proto", proto_saved);
+                    item_saved.Add("subdomain", listView_ngrok.Items[i].SubItems[5].Text);
+                }
+                if (listView_ngrok.Items[i].SubItems[2].Text == "tcp")
+                {
+                    proto_saved.Add("tcp", listView_ngrok.Items[i].SubItems[3].Text);
+                    item_saved.Add("proto", proto_saved);
+                    item_saved.Add("remote_port", listView_ngrok.Items[i].SubItems[4].Text);
+                }
+                tunnel_saved.Add(listView_ngrok.Items[i].SubItems[1].Text, item_saved);
+            }
+
+            ngrok.ngrokConfig.authtoken = textBox_AuthToken.Text.ToString();
+            ngrok.ngrokConfig.server_addr = textBox_serverAddr.Text.ToString();
+            ngrok.ngrokConfig.tunnels = tunnel_saved;
+
+            ngrok.Save();
+        }
+
+        private void button_addnew_Click(object sender, EventArgs e)
+        {
+            Form_tunnelEdit tunnelEditForm = new Form_tunnelEdit();
+            tunnelEditForm.Owner = this;
+            tunnelEditForm.tunnelMode = "addNew";
+            tunnelEditForm.tunnelIndex = listView_ngrok.Items.Count;
+            tunnelEditForm.ShowDialog();
+        }
+
+        private void button_delete_Click(object sender, EventArgs e)
+        {
+            /*foreach (ListViewItem lvi in listView_ngrok.SelectedItems)  //选中项遍历
+            {
+                //listView_ngrok.Items.RemoveAt(lvi.Index); // 按索引移除
+                listView_ngrok.Items.Remove(lvi);   //按项移除
+            }*/
+            if(listView_ngrok.SelectedItems.Count > 0)
+            {
+                listView_ngrok.SelectedItems[0].Remove();
+            }
+            for (int i = 0; i < listView_ngrok.Items.Count; i++)
+            {
+                listView_ngrok.Items[i].Text = (i+1).ToString();
+            }
+            textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "网络穿透隧道删除成功！" + "\r\n");
+        }
+
+        private void button_edit_Click(object sender, EventArgs e)
+        {
+            if (listView_ngrok.SelectedItems.Count < 1)
+            {
+                MessageBox.Show("请选择需要编辑的项目", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            else
+            {
+                Form_tunnelEdit tunnelEditForm = new Form_tunnelEdit();
+                tunnelEditForm.Owner = this;
+                int index = listView_ngrok.SelectedIndices[0];
+                tunnelEditForm.tunnelIndex = index;
+                tunnelEditForm.textBox_symbol.Text = listView_ngrok.Items[index].SubItems[1].Text;
+                tunnelEditForm.comboBox_proto.Text = listView_ngrok.Items[index].SubItems[2].Text;
+                if (listView_ngrok.Items[index].SubItems[2].Text == "tcp")
+                {
+                    tunnelEditForm.textBox_subdomain.Enabled = false;
+                }
+                else
+                {
+                    tunnelEditForm.textBox_subdomain.Text = listView_ngrok.Items[index].SubItems[5].Text;
+                }
+                tunnelEditForm.textBox_localPort.Text = listView_ngrok.Items[index].SubItems[3].Text;
+                if(listView_ngrok.Items[index].SubItems[2].Text == "http" || listView_ngrok.Items[index].SubItems[2].Text == "https")
+                {
+                    tunnelEditForm.textBox_serverPort.Enabled = false;
+                }
+                else
+                {
+                    tunnelEditForm.textBox_serverPort.Text = listView_ngrok.Items[index].SubItems[4].Text;
+                }
+                tunnelEditForm.ShowDialog();
+            }
+        }
+
+        private void button_stop_Click(object sender, EventArgs e)
+        {
+            if (ngrok.IsExists())
+            {
+                textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "Ngrok穿透功能关闭。" + "\r\n");
+                ngrok.Stop();
+            }
         }
     }
 }

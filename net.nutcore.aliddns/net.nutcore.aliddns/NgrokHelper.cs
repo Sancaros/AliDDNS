@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using YamlDotNet.Serialization;
 
@@ -12,12 +11,31 @@ namespace net.nutcore.aliddns
 {
     internal class NgrokHelper
     {
-        private static readonly string NgrokExecutable = "ngrok.exe";
-        private static readonly string NgrokYamlConfig = "ngrok.cfg";
-        public static readonly string CurrentDirectory = Path.GetDirectoryName(Application.ExecutablePath);
-        public static readonly string FileNgrokExecutable = Path.Combine(CurrentDirectory, NgrokExecutable);
-        public static readonly string FileConfig = Path.Combine(CurrentDirectory, NgrokYamlConfig);
-        private static string LocalHost = "localhost:4040";
+        private static readonly string ngrokExecutable = "ngrok.exe";
+        private static readonly string ngrokYamlConfig = "ngrok.cfg";
+        public static readonly string currentDirectory = Path.GetDirectoryName(Application.ExecutablePath);
+        public static readonly string ngrokExecutableFile = Path.Combine(currentDirectory, ngrokExecutable);
+        public static readonly string ngrokConfigFile = Path.Combine(currentDirectory, ngrokYamlConfig);
+        private static string localHost = "localhost:4040";
+        public Config ngrokConfig = new Config();
+
+        public NgrokHelper()
+        {
+            if (!File.Exists(ngrokConfigFile))
+            {
+                this.CreateDefaultConfig(ngrokConfigFile);
+                this.Load();
+            }
+            else
+            {
+                FileInfo filereader = new FileInfo(ngrokConfigFile);
+                if (filereader.Length == 0)
+                {
+                    this.CreateDefaultConfig(ngrokConfigFile);
+                }
+                this.Load();
+            }
+        }
 
         public class Config
         {
@@ -32,24 +50,21 @@ namespace net.nutcore.aliddns
             public bool trust_host_root_certs { get; set; }
             public bool run_website { get; set; }
             public bool run_tcp { get; set; }
-            public Tunnel tunnels { get; set; }
+            //public Tunnel tunnels { get; set; }
+            public object tunnels { get; set; }
         }
 
         public class Tunnel
         {
-            public Protocol website_http { get; set; }
-            public Protocol website_https { get; set; }
-            public Protocol tcp1 { get; set; }
-            public Protocol tcp2 { get; set; }
-            public Protocol tcp3 { get; set; }
-            public Protocol tcp4 { get; set; }
+            public Protocol weisite { get; set; }
+            public Protocol tcp { get; set; }
         }
 
         public class Protocol
         {
-            public string subdomain { get; set; }
-            public int remote_port { get; set; }
             public Proto proto { get; set; }
+            public int remote_port { get; set; }
+            public string subdomain { get; set; }
             public string auth { get; set; }
         }
 
@@ -72,86 +87,36 @@ namespace net.nutcore.aliddns
             public string proto { get; set; }
         }
 
-        public NgrokHelper()
+        public void CreateDefaultConfig(String ngrokConfigFile)
         {
-            if (!File.Exists(FileConfig))
-            {
-                var config = new Config
-                {
-                    authtoken = string.Empty,
-                    server_addr = "tunnels.ngrok.io:4443",
-                    console_ui = true,
-                    region = "us",
-                    log_level = "info",
-                    log_format = "logfmt",
-                    log = "ngrok.log",
-                    web_addr = LocalHost,
-                    trust_host_root_certs = false,
-                    run_website = true,
-                    run_tcp = true,
-                    tunnels = new Tunnel
-                    {
-                        website_http = new Protocol
-                        {
-                            subdomain = "subdomain",
-                            proto = new Proto
-                            {
-                                http = 80
-                            }
+            var config = new Config();
+            config.authtoken = string.Empty;
+            config.server_addr = "tunnels.ngrok.io:4443";
+            config.console_ui = true;
+            config.region = "us";
+            config.log_level = "info";
+            config.log_format = "logfmt";
+            config.log = "ngrok.log";
+            config.web_addr = "localhost:4040";
+            config.trust_host_root_certs = false;
+            config.run_website = true;
+            config.run_tcp = true;
+            Protocol tunnel0 = new Protocol { proto = new Proto { http = 80 }, subdomain = "web1" };
+            Protocol tunnel1 = new Protocol { proto = new Proto { https = 443 }, subdomain = "web1" };
+            Protocol tunnel2 = new Protocol { proto = new Proto { tcp = 21 }, remote_port = 8021 };
+            Protocol tunnel3 = new Protocol { proto = new Proto { tcp = 3306 }, remote_port = 8306 };
+            Protocol tunnel4 = new Protocol { proto = new Proto { tcp = 3389 }, remote_port = 8389 };
+            Protocol tunnel5 = new Protocol { proto = new Proto { tcp = 9000 }, remote_port = 8900 };
+            config.tunnels = new { item0 = tunnel0, item1 = tunnel1, item2 = tunnel2, item3 = tunnel3, item4 = tunnel4, item5 = tunnel5 };
 
-                        },
-                        website_https = new Protocol
-                        {
-                            subdomain = "subdomain",
-                            proto = new Proto
-                            {
-                                https = 443
-                            }
-                        },
-                        tcp1 = new Protocol
-                        {
-                            remote_port = 10001,
-                            proto = new Proto
-                            {
-                                tcp = 21
-                            }
-                        },
-                        tcp2 = new Protocol
-                        {
-                            remote_port = 10002,
-                            proto = new Proto
-                            {
-                                tcp = 22
-                            }
-                        },
-                        tcp3 = new Protocol
-                        {
-                            remote_port = 10003,
-                            proto = new Proto
-                            {
-                                tcp = 3389
-                            }
-                        },
-                        tcp4 = new Protocol
-                        {
-                            remote_port = 10099,
-                            proto = new Proto
-                            {
-                                tcp = 9000
-                            }
-                        }
-                    }
-                };
-
-                var serializer = new SerializerBuilder().Build();
-                var yaml = serializer.Serialize(config);
-                File.WriteAllText(FileConfig, yaml);
-            }
+            var serializer = new SerializerBuilder().Build();
+            var yaml = serializer.Serialize(config);
+            File.WriteAllText(ngrokConfigFile, yaml);
         }
 
         public bool IsExists()
         {
-            return File.Exists(FileNgrokExecutable);
+            return File.Exists(ngrokExecutableFile);
         }
 
         public Response GetResponse()
@@ -160,7 +125,7 @@ namespace net.nutcore.aliddns
             {
                 using (WebClient web = new WebClient())
                 {
-                    var content = web.DownloadString($"http://{LocalHost}/api/tunnels");
+                    var content = web.DownloadString($"http://{localHost}/api/tunnels");
                     return JsonConvert.DeserializeObject<NgrokHelper.Response>(content);
                 }
             }
@@ -170,77 +135,28 @@ namespace net.nutcore.aliddns
             }
         }
 
-        public Config Load()
+        public void Load()
         {
-            var yaml = File.ReadAllText(FileConfig);
-            var deserializer = new DeserializerBuilder().Build();
-            var config = deserializer.Deserialize<Config>(yaml);
-
-            LocalHost = config.web_addr;
-            return config;
+            var yaml = File.ReadAllText(ngrokConfigFile);
+            var deserializer = new Deserializer();
+            this.ngrokConfig = deserializer.Deserialize<Config>(yaml); 
         }
 
-        public void Save(string token, string server_addr, string subdomain, int http, int https, int remoteport1, int lanport1, int remoteport2, int lanport2, int remoteport3, int lanport3, int remoteport4, int lanport4, bool root_certs, bool run_website, bool run_tcp)
+        public void Save()
         {
-            var config = Load();
-            config.authtoken = token;
-            config.server_addr = server_addr;
-            config.tunnels.website_http.subdomain = subdomain;
-            config.tunnels.website_http.proto.http = http;
-            config.tunnels.website_https.subdomain = subdomain;
-            config.tunnels.website_https.proto.https = https;
-            config.tunnels.tcp1.remote_port = remoteport1;
-            config.tunnels.tcp1.proto.tcp = lanport1;
-            config.tunnels.tcp2.remote_port = remoteport2;
-            config.tunnels.tcp2.proto.tcp = lanport2;
-            config.tunnels.tcp3.remote_port = remoteport3;
-            config.tunnels.tcp3.proto.tcp = lanport3;
-            config.tunnels.tcp4.remote_port = remoteport4;
-            config.tunnels.tcp4.proto.tcp = lanport4;
-            config.trust_host_root_certs = root_certs;
-            config.run_website = run_website;
-            config.run_tcp = run_tcp;
-
             var serializer = new SerializerBuilder().Build();
-            var yaml = serializer.Serialize(config);
-            File.WriteAllText(FileConfig, yaml);
+            var yaml = serializer.Serialize(this.ngrokConfig);
+            File.WriteAllText(ngrokConfigFile, yaml);
         }
 
         public void Start(int code = 0)
         {
             var exec = new ProcessStartInfo();
-            exec.WorkingDirectory = CurrentDirectory;
-            exec.FileName = NgrokExecutable;
+            exec.WorkingDirectory = currentDirectory;
+            exec.FileName = ngrokExecutable;
             exec.CreateNoWindow = true;
             exec.UseShellExecute = false;
-            exec.Arguments = $"-config \"{NgrokYamlConfig}\" start ";
-
-            switch (code)
-            {
-                case 1:
-                    exec.Arguments += "website_http";
-                    break;
-
-                case 2:
-                    exec.Arguments += "website_http website_https";
-                    break;
-
-                case 3:
-                    exec.Arguments += "website_http website_https tcp1";
-                    break;
-
-                case 4:
-                    exec.Arguments += "website_http website_https tcp1 tcp2";
-                    break;
-
-                case 5:
-                    exec.Arguments += "website_http website_https tcp1 tcp2 tcp3";
-                    break;
-
-                default:
-                    exec.Arguments += "website_http website_https tcp1 tcp2 tcp3 tcp4";
-                    break;
-            }
+            exec.Arguments = $"-config \"{ngrokYamlConfig}\" start-all ";
 
             try
             {
