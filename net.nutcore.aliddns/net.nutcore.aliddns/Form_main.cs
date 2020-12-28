@@ -9,6 +9,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
 using static Aliyun.Acs.Alidns.Model.V20150109.DescribeSubDomainRecordsResponse;
 
@@ -16,7 +17,7 @@ namespace net.nutcore.aliddns
 {
     public partial class Form_main : Form
     {
-        public static bool checkUpdate;
+        private delegate void ThreadNew();//代理异步线程->升级
         static IClientProfile clientProfile;
         static DefaultAcsClient client;
         //初始化ngrok操作类
@@ -79,20 +80,6 @@ namespace net.nutcore.aliddns
             //读取设置文件aliddns_config.xml
             if (appConfig_Load())
             {
-                string ExePath = System.AppDomain.CurrentDomain.BaseDirectory;
-                string updateExe = ExePath + "update.exe";
-                if(checkUpdate == true)
-                {
-                    if (File.Exists(updateExe))
-                    {
-                        //执行update.exe
-                    }
-                    else
-                    {
-                        textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "版本检测程序update.exe未找到，跳过版本检测！ " + "\r\n");
-                    }
-                }
-                
                 //窗体根据参数判断是否最小化驻留系统托盘
                 if (checkBox_minimized.Checked == true)
                 {
@@ -129,18 +116,18 @@ namespace net.nutcore.aliddns
                 textBox_updateInfo.Text = "软件运行目录下没有找到updateinfo.txt文件！";
             }
 
-            //版本检查
-            label_currentVer.Text = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(); //获取当前版本
-            if (Form_main.checkUpdate == true)
-            {
-                checkBox_autoCheckUpdate.Checked = true;
-                //获取远程版本信息
-                string strVer = Form_main.verCheckUpdate();
-                label_latestVer.Text = strVer.ToString();
+            //获取当前版本
+            label_currentVer.Text = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(); 
+            if ( checkBox_autoUpgrade.Checked == true )
+            {                
+                //执行upgrade
+                textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "正在自动检测升级！ " + "\r\n");
+                Thread newThread = new Thread(new ParameterizedThreadStart(simpleUpgrade));
+                newThread.Start(cfg.GetAppSetting("upgradeUrl"));
             }
             else
             {
-                checkBox_autoCheckUpdate.Checked = false;
+                textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "自动检测升级未启用！ " + "\r\n");
             }
             //读取ngrok配置文件
             ngrokConfig_Load();
@@ -161,9 +148,11 @@ namespace net.nutcore.aliddns
                 textBox_recordId.Text = cfg.GetAppSetting("RecordID").ToString();
                 textBox_fullDomainName.Text = cfg.GetAppSetting("fullDomainName").ToString();
                 label_nextUpdateSeconds.Text = textBox_newSeconds.Text = cfg.GetAppSetting("WaitingTime").ToString();
+
                 if (cfg.GetAppSetting("autoUpdate").ToString() == "On") checkBox_autoUpdate.Checked = true;
                 else checkBox_autoUpdate.Checked = false;
-                if(cfg.GetAppSetting("whatIsUrl").ToString() != null)
+
+                if (cfg.GetAppSetting("whatIsUrl").ToString() != null)
                 {
                     string[] arrayUrl = cfg.GetAppSetting("whatIsUrl").ToString().Split(',');
                     foreach(string strUrl in arrayUrl)
@@ -184,14 +173,24 @@ namespace net.nutcore.aliddns
 
                 textBox_TTL.Text = cfg.GetAppSetting("TTL").ToString();
 
-                if (cfg.GetAppSetting("autoCheckUpdate").ToString() == "On") checkUpdate = true;
-                else checkUpdate = false;
+                if (cfg.GetAppSetting("autoUpgrade").ToString() == "On") checkBox_autoUpgrade.Checked = true;
+                else checkBox_autoUpgrade.Checked = false;
 
                 if (cfg.GetAppSetting("ngrokauto").ToString() == "On") checkBox_ngrokAuto.Checked = true;
                 else checkBox_ngrokAuto.Checked = false;
 
                 if (cfg.GetAppSetting("ngrokexists").ToString() == "On") checkBox_ngrokExists.Checked = true;
                 else checkBox_ngrokExists.Checked = false;
+
+                if (cfg.isKeyExists("upgradeUrl"))
+                {
+                    textBox_upgradeUrl.Text = cfg.GetAppSetting("upgradeUrl").ToString();
+                }
+                else
+                {
+                    cfg.SetAppSetting("upgradeUrl", "https://dev.51zyy.cn/aliddns/updater.xml");
+                    textBox_upgradeUrl.Text = cfg.GetAppSetting("upgradeUrl").ToString();
+                }
 
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "设置文件读取成功！" + "\r\n");
                 return true;
@@ -246,7 +245,6 @@ namespace net.nutcore.aliddns
                     textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "请检查配置文件查询网址设置！" + "\r\n");
                     return "0.0.0.0";
                 }
-                //return "0.0.0.0";
             }
             catch (Exception error)
             {
@@ -290,7 +288,7 @@ namespace net.nutcore.aliddns
                         i++;
                         textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "阿里云DNS服务返回RecordId:" + i.ToString() + " RecordId：" + record.RecordId + "\r\n");
                         textBox_recordId.Text = record.RecordId;
-                        cfg.SaveAppSetting("RecordID", record.RecordId.ToString());
+                        cfg.SetAppSetting("RecordID", record.RecordId.ToString());
                         label_globalRR.Text = record.RR;
                         label_globalDomainType.Text = record.Type;
                         label_globalValue.Text = label_domainIP.Text = record.Value;
@@ -342,7 +340,7 @@ namespace net.nutcore.aliddns
                         textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "配置文件域名记录:" + textBox_recordId.Text.ToString() + " 对应域名为:" + textBox_fullDomainName.Text.ToString() + "\r\n");
                         textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "配置文件设置错误！可能原因是修改域名记录后未及时添加，已经自动修改配置文件与服务器记录一致！" + "\r\n");
                         textBox_fullDomainName.Text = fullDomain;
-                        cfg.SaveAppSetting("fullDomainName", fullDomain);
+                        cfg.SetAppSetting("fullDomainName", fullDomain);
                     }
                     textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "域名:" + response.RR + "." + response.DomainName + " 已经绑定IP:" + response.Value + "\r\n");
                     textBox_recordId.Text = response.RecordId;
@@ -463,7 +461,7 @@ namespace net.nutcore.aliddns
                 {
                     textBox_log.AppendText(System.DateTime.Now.ToString() + " " + " 域名：" + textBox_fullDomainName.Text + "添加成功！" + "服务器返回RecordId:" + response.RecordId  + "\r\n");
                     textBox_recordId.Text = response.RecordId.ToString();
-                    cfg.SaveAppSetting("RecordID", response.RecordId.ToString());
+                    cfg.SetAppSetting("RecordID", response.RecordId.ToString());
                     label_globalDomainType.Text = request.Type;
                     label_globalRR.Text = request.RR;
                     label_globalValue.Text = label_domainIP.Text = request.Value;
@@ -643,7 +641,7 @@ namespace net.nutcore.aliddns
                     Microsoft.Win32.RegistryKey Rkey = Microsoft.Win32.Registry.LocalMachine.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
                     Rkey.SetValue("AliDDNS Tray", thisExecutablePath);
                     Rkey.Close();
-                    cfg.SaveAppSetting("autoBoot", "On");
+                    cfg.SetAppSetting("autoBoot", "On");
                     textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "随系统启动自动运行设置成功！" + "\r\n");
                 }
                 else
@@ -651,7 +649,7 @@ namespace net.nutcore.aliddns
                     Microsoft.Win32.RegistryKey Rkey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
                     Rkey.DeleteValue("AliDDNS Tray");
                     Rkey.Close();
-                    cfg.SaveAppSetting("autoBoot", "Off");
+                    cfg.SetAppSetting("autoBoot", "Off");
                     textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "随系统启动自动运行取消！" + "\r\n");
                 }
             }
@@ -665,12 +663,12 @@ namespace net.nutcore.aliddns
         {
             if (checkBox_logAutoSave.Checked == true)
             {
-                cfg.SaveAppSetting("logautosave", "On");
+                cfg.SetAppSetting("logautosave", "On");
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "日志自动转储启用成功！日志超过1万行将自动转储。" + "\r\n");
             }
             else
             {
-                cfg.SaveAppSetting("logautosave", "Off");
+                cfg.SetAppSetting("logautosave", "Off");
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "日志自动转储取消！" + "\r\n");
             }
         }
@@ -711,12 +709,12 @@ namespace net.nutcore.aliddns
         {
             if(checkBox_autoUpdate.Checked == true)
             {
-                cfg.SaveAppSetting("autoUpdate", "On");
+                cfg.SetAppSetting("autoUpdate", "On");
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "域名记录自动更新启用成功！" + "\r\n");
             }
             else
             {
-                cfg.SaveAppSetting("autoUpdate", "Off");
+                cfg.SetAppSetting("autoUpdate", "Off");
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "域名记录自动更新取消！" + "\r\n");
             }
         }
@@ -725,12 +723,12 @@ namespace net.nutcore.aliddns
         {
             if (checkBox_minimized.Checked == true)
             {
-                cfg.SaveAppSetting("minimized", "On");
+                cfg.SetAppSetting("minimized", "On");
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "软件启动时驻留到系统托盘启用！" + "\r\n");
             }
             else
             {
-                cfg.SaveAppSetting("minimized", "Off");
+                cfg.SetAppSetting("minimized", "Off");
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "软件启动时驻留到系统托盘取消！" + "\r\n");
             }
         }
@@ -786,15 +784,18 @@ namespace net.nutcore.aliddns
         /// 从github.com仓库检查软件最新release版本信息，返回版本号
         /// </summary>
         /// <returns></returns>
-        public static string verCheckUpdate()
+        public string[] getRemoteVer(string strUrl)
         {
-            try
+            if (strUrl == null)
             {
-                string strUrl = "https://github.com/wisdomwei201804/AliDDNS/releases/latest";
-                if (strUrl.StartsWith("https"))
-                {
-                    ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;  // SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls1.2 | SecurityProtocolType.Tls12;
-                }
+                strUrl = "https://github.com/wisdomwei201804/AliDDNS/releases/latest";
+            }
+            if (strUrl.StartsWith("https"))
+            {
+                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;  // SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls1.2 | SecurityProtocolType.Tls12;
+            }
+            try
+            {              
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(strUrl);
                 request.Method = "GET";
                 request.Accept = "application/json";
@@ -805,36 +806,31 @@ namespace net.nutcore.aliddns
                 sr.Dispose();
                 if (response.StatusCode.ToString() == "OK" )
                 {
-                    //MessageBox.Show(response.StatusCode.ToString());
-                    //MessageBox.Show(Regex.Match(result, @"""tag_name"":""([^""]*)""").Groups[1].Value);
-                    return Regex.Match(result, @"""tag_name"":""([^""]*)""").Groups[1].Value;
+                    string remoteVer = Regex.Match(result, @"""tag_name"":""([^""]*)""").Groups[1].Value;
+                    return new string[] { "OK", remoteVer };
                 }
                 else
                 {
-                    return null;
+                    return new string[] { "NULL", null };
                 }
             }
             catch (Exception error)
             {
-                MessageBox.Show(error.ToString());
-                return null;
+                return new string[] { "-1", error.Message.ToString() };
             }
         }
 
-        private void ToolStripMenuItem_checkUPdate_Click(object sender, EventArgs e)
+        private void ToolStripMenuItem_checkUpgrade_Click(object sender, EventArgs e)
         {
-            string strVer = verCheckUpdate();
-            if (strVer != null)
-            {
-                Version remoteVer = new Version(strVer);
-                Version localVer = new Version(System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString());
-                if (remoteVer > localVer)
-                    MessageBox.Show("发现新版本: " + remoteVer);
-                else
-                    MessageBox.Show("没有新版本，无需升级！");
-            }
+            textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "正在检测升级！ " + "\r\n");
+            simpleUpgrade(textBox_upgradeUrl.Text);
+
+            Version remoteVer = new Version(label_latestVer.Text);
+            Version localVer = new Version(label_currentVer.Text);
+            if (remoteVer > localVer)
+                MessageBox.Show("发现新版本: " + remoteVer);
             else
-                MessageBox.Show("获取新版本信息失败！");
+                MessageBox.Show("没有新版本，无需升级！");
         }
 
         private void checkBox_ngrokAuto_CheckedChanged(object sender, EventArgs e)
@@ -842,7 +838,7 @@ namespace net.nutcore.aliddns
             
             if (checkBox_ngrokAuto.Checked == true)
             {
-                cfg.SaveAppSetting("ngrokauto", "On");
+                cfg.SetAppSetting("ngrokauto", "On");
                 //检测ngrok.exe是否存在
                 if (ngrok.IsExists())
                 {
@@ -856,7 +852,7 @@ namespace net.nutcore.aliddns
             }
             else
             {
-                cfg.SaveAppSetting("ngrokauto", "Off");
+                cfg.SetAppSetting("ngrokauto", "Off");
                 ngrok.Stop();
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "Ngrok功能关闭，再次启动将不会加载！" + "\r\n");
             }
@@ -866,7 +862,7 @@ namespace net.nutcore.aliddns
         {
             if (checkBox_ngrokExists.Checked == true)
             {
-                cfg.SaveAppSetting("ngrokexists", "On");
+                cfg.SetAppSetting("ngrokexists", "On");
                 //检测ngrok.exe是否存在
                 if (ngrok.IsExists())
                 {
@@ -879,7 +875,7 @@ namespace net.nutcore.aliddns
             }
             else
             {
-                cfg.SaveAppSetting("ngrokexists", "Off");
+                cfg.SetAppSetting("ngrokexists", "Off");
                 ngrok.Stop();
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "启动时不再检测ngrok.exe是否存在。" + "\r\n");
             }
@@ -901,31 +897,31 @@ namespace net.nutcore.aliddns
 
         private void fullDomainName_Leave(object sender, EventArgs e)
         {
-            cfg.SaveAppSetting("fullDomainName", this.textBox_fullDomainName.Text.ToString());
+            cfg.SetAppSetting("fullDomainName", this.textBox_fullDomainName.Text.ToString());
             textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "域名已经保存，点击测试连接将查询域名是否存在，当不存在时点击添加域名会创建新域名记录！" + "\r\n");
         }
 
         private void accessKeyId_Leave(object sender, EventArgs e)
         {
-            cfg.SaveAppSetting("AccessKeyID", EncryptHelper.AESEncrypt(this.textBox_accessKeyId.Text.ToString()));
+            cfg.SetAppSetting("AccessKeyID", EncryptHelper.AESEncrypt(this.textBox_accessKeyId.Text.ToString()));
             textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "accessKeyId已经保存，请完成设置录入后点击测试连接！" + "\r\n");
         }
 
         private void accessKeySecret_Leave(object sender, EventArgs e)
         {
-            cfg.SaveAppSetting("AccessKeySecret", EncryptHelper.AESEncrypt(this.textBox_accessKeySecret.Text.ToString()));
+            cfg.SetAppSetting("AccessKeySecret", EncryptHelper.AESEncrypt(this.textBox_accessKeySecret.Text.ToString()));
             textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "accessKeySecret已经保存，请完成设置录入后点击测试连接！" + "\r\n");
         }
 
         private void textBox_TTL_Leave(object sender, EventArgs e)
         {
-            cfg.SaveAppSetting("TTL",this.textBox_TTL.Text.ToString());
+            cfg.SetAppSetting("TTL",this.textBox_TTL.Text.ToString());
             textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "TTL设置修改保存成功！" + "\r\n");
         }
 
         private void newSeconds_Leave(object sender, EventArgs e)
         {
-            cfg.SaveAppSetting("WaitingTime", this.textBox_newSeconds.Text.ToString());
+            cfg.SetAppSetting("WaitingTime", this.textBox_newSeconds.Text.ToString());
             textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "自动更新倒计时设置修改保存成功！" + "\r\n");
         }
 
@@ -961,16 +957,16 @@ namespace net.nutcore.aliddns
             System.Diagnostics.Process.Start("explorer.exe", "https://github.com/wisdomwei201804/AliDDNS/");
         }
 
-        private void checkBox_autoCheckUpdate_CheckedChanged(object sender, EventArgs e)
+        private void checkBox_autoUpgrade_CheckedChanged(object sender, EventArgs e)
         {
-            if (checkBox_autoCheckUpdate.Checked == true)
+            if (checkBox_autoUpgrade.Checked == true)
             {
-                cfg.SaveAppSetting("autoCheckUpdate", "On");
+                cfg.SetAppSetting("autoUpgrade", "On");
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "软件自动检测升级启用！" + "\r\n");
             }
             else
             {
-                cfg.SaveAppSetting("autoCheckUpdate", "Off");
+                cfg.SetAppSetting("autoUpgrade", "Off");
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "软件自动检测升级关闭！" + "\r\n");
             }
         }
@@ -1158,6 +1154,75 @@ namespace net.nutcore.aliddns
             {
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "Ngrok穿透功能关闭。" + "\r\n");
                 ngrok.Stop();
+            }
+        }
+
+        private void button_upgradeTest_Click(object sender, EventArgs e)
+        {
+            textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "正在检测升级！ " + "\r\n");
+            simpleUpgrade(textBox_upgradeUrl.Text);
+        }
+
+        private void textBox_upgradeUrl_Leave(object sender, EventArgs e)
+        {
+            cfg.SetAppSetting("upgradeUrl", this.textBox_upgradeUrl.Text.ToString());
+            textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "升级地址修改成功！" + "\r\n");
+        }
+
+        private void simpleUpgrade(object str)
+        {
+            // 当一个控件的InvokeRequired属性值为真时，说明有一个创建它以外的线程想访问它
+            if (textBox_log.InvokeRequired)
+            {
+                string[] remoteVer = this.getRemoteVer(str.ToString());
+                if(remoteVer[0].ToString() == "OK")
+                {
+                    Action<string> changeVer = delegate (string txt)
+                    {
+                        this.label_latestVer.Text = txt.ToString();
+                    };
+                    this.Invoke(changeVer, remoteVer[1].ToString());
+
+                    Action<string> appendText = delegate (string txt)
+                    {
+                        this.textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "获取远程版本信息成功，远程版本: " + txt.ToString() + "\r\n");
+                    };
+                    this.Invoke(appendText, remoteVer[1].ToString());
+                }
+                else if(remoteVer[0].ToString() == "NULL")
+                {
+                    Action<string> appendText = delegate (string txt)
+                    {
+                        this.textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "未发现新版本" + "\r\n");
+                    };
+                    this.Invoke(appendText, null);
+                }
+                else
+                {
+                    Action<string> appendText = delegate (string txt)
+                    {
+                        this.textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "获取远程版本信息出错："+ txt.ToString() + "\r\n");
+                    };
+                    this.Invoke(appendText, remoteVer[1].ToString());
+                }
+                
+            }
+            else
+            {
+                string[] remoteVer = this.getRemoteVer(str.ToString());
+                if (remoteVer[0].ToString() == "OK")
+                {
+                    this.label_latestVer.Text = remoteVer[1].ToString();
+                    this.textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "获取远程版本信息成功，远程版本: " + remoteVer[1].ToString() + "\r\n");
+                }
+                else if (remoteVer[0].ToString() == "NULL")
+                {
+                    this.textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "未发现新版本" + "\r\n");
+                }
+                else
+                {
+                    this.textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "获取远程版本信息出错：" + remoteVer[1].ToString() + "\r\n");
+                }
             }
         }
     }

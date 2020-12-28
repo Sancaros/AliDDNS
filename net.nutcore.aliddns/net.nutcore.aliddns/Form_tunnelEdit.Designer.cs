@@ -62,7 +62,7 @@
             this.label1.Location = new System.Drawing.Point(6, 17);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(65, 12);
-            this.label1.TabIndex = 1;
+            this.label1.TabIndex = 5;
             this.label1.Text = "英文标识：";
             // 
             // label2
@@ -71,7 +71,7 @@
             this.label2.Location = new System.Drawing.Point(6, 44);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(65, 12);
-            this.label2.TabIndex = 2;
+            this.label2.TabIndex = 6;
             this.label2.Text = "网络协议：";
             // 
             // label3
@@ -80,7 +80,7 @@
             this.label3.Location = new System.Drawing.Point(6, 97);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(65, 12);
-            this.label3.TabIndex = 3;
+            this.label3.TabIndex = 8;
             this.label3.Text = "本地端口：";
             // 
             // label4
@@ -89,7 +89,7 @@
             this.label4.Location = new System.Drawing.Point(6, 124);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(77, 12);
-            this.label4.TabIndex = 4;
+            this.label4.TabIndex = 9;
             this.label4.Text = "服务器端口：";
             // 
             // label5
@@ -98,7 +98,7 @@
             this.label5.Location = new System.Drawing.Point(6, 70);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(41, 12);
-            this.label5.TabIndex = 5;
+            this.label5.TabIndex = 7;
             this.label5.Text = "域名：";
             // 
             // textBox_localPort
@@ -107,7 +107,7 @@
             this.textBox_localPort.MaxLength = 5;
             this.textBox_localPort.Name = "textBox_localPort";
             this.textBox_localPort.Size = new System.Drawing.Size(87, 21);
-            this.textBox_localPort.TabIndex = 6;
+            this.textBox_localPort.TabIndex = 3;
             // 
             // comboBox_proto
             // 
@@ -120,7 +120,7 @@
             this.comboBox_proto.Location = new System.Drawing.Point(77, 41);
             this.comboBox_proto.Name = "comboBox_proto";
             this.comboBox_proto.Size = new System.Drawing.Size(87, 20);
-            this.comboBox_proto.TabIndex = 7;
+            this.comboBox_proto.TabIndex = 1;
             this.comboBox_proto.TextChanged += new System.EventHandler(this.comboBox_proto_TextChanged);
             // 
             // textBox_serverPort
@@ -129,7 +129,7 @@
             this.textBox_serverPort.MaxLength = 5;
             this.textBox_serverPort.Name = "textBox_serverPort";
             this.textBox_serverPort.Size = new System.Drawing.Size(87, 21);
-            this.textBox_serverPort.TabIndex = 8;
+            this.textBox_serverPort.TabIndex = 4;
             // 
             // textBox_subdomain
             // 
@@ -137,7 +137,7 @@
             this.textBox_subdomain.MaxLength = 10;
             this.textBox_subdomain.Name = "textBox_subdomain";
             this.textBox_subdomain.Size = new System.Drawing.Size(87, 21);
-            this.textBox_subdomain.TabIndex = 9;
+            this.textBox_subdomain.TabIndex = 2;
             // 
             // label6
             // 
@@ -194,7 +194,7 @@
             this.groupBox_tunnel.Location = new System.Drawing.Point(5, 7);
             this.groupBox_tunnel.Name = "groupBox_tunnel";
             this.groupBox_tunnel.Size = new System.Drawing.Size(244, 149);
-            this.groupBox_tunnel.TabIndex = 14;
+            this.groupBox_tunnel.TabIndex = 0;
             this.groupBox_tunnel.TabStop = false;
             this.groupBox_tunnel.Text = "Tunnel";
             // 
@@ -203,7 +203,7 @@
             this.button_confirm.Location = new System.Drawing.Point(139, 162);
             this.button_confirm.Name = "button_confirm";
             this.button_confirm.Size = new System.Drawing.Size(58, 25);
-            this.button_confirm.TabIndex = 15;
+            this.button_confirm.TabIndex = 0;
             this.button_confirm.Text = "确定";
             this.button_confirm.UseVisualStyleBackColor = true;
             this.button_confirm.Click += new System.EventHandler(this.button_confirm_Click);
@@ -213,7 +213,7 @@
             this.button_cancel.Location = new System.Drawing.Point(57, 162);
             this.button_cancel.Name = "button_cancel";
             this.button_cancel.Size = new System.Drawing.Size(59, 25);
-            this.button_cancel.TabIndex = 16;
+            this.button_cancel.TabIndex = 1;
             this.button_cancel.Text = "取消";
             this.button_cancel.UseVisualStyleBackColor = true;
             this.button_cancel.Click += new System.EventHandler(this.button_cancel_Click);

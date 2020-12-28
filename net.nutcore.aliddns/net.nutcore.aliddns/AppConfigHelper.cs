@@ -53,7 +53,7 @@ namespace net.nutcore.aliddns
                             foreach (XmlNode node in oldNodes)
                             {
                                 Console.WriteLine(node.Name.ToString() + " : " + node.InnerText.ToString());
-                                SaveAppSetting(node.Name.ToString(), node.InnerText.ToString());
+                                SetAppSetting(node.Name.ToString(), node.InnerText.ToString());
                             }
                         }
                     }
@@ -111,9 +111,10 @@ namespace net.nutcore.aliddns
                             new XElement("add", new XAttribute("key", "minimized"), new XAttribute("value", "Off")),
                             new XElement("add", new XAttribute("key", "logautosave"), new XAttribute("value", "Off")),
                             new XElement("add", new XAttribute("key", "TTL"), new XAttribute("value", "600")),
-                            new XElement("add", new XAttribute("key", "autoCheckUpdate"), new XAttribute("value", "Off")),
                             new XElement("add", new XAttribute("key", "ngrokauto"), new XAttribute("value", "Off")),
-                            new XElement("add", new XAttribute("key", "ngrokexists"), new XAttribute("value", "Off"))
+                            new XElement("add", new XAttribute("key", "ngrokexists"), new XAttribute("value", "Off")),
+                            new XElement("add", new XAttribute("key", "autoUpgrade"), new XAttribute("value", "Off")),
+                            new XElement("add", new XAttribute("key", "upgradeUrl"), new XAttribute("value", ""))
                         )
                 )
             );
@@ -123,8 +124,6 @@ namespace net.nutcore.aliddns
             xmlDoc.Indent = true;
             XmlWriter xw = XmlWriter.Create(configFilePath, xmlDoc);
             xElement.Save(xw);//写入文件
-            //xw.Dispose();
-            //xw.Flush();
             xw.Close();
         }
 
@@ -144,11 +143,17 @@ namespace net.nutcore.aliddns
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        public void SaveAppSetting(string key, string value)
+        public void SetAppSetting(string key, string value)
         {
-            //在保存key值时必须先删除它，否则改key的值将出现两个，例如：value="oldvalue, newvalue"
-            configFile.AppSettings.Settings.Remove(key);
-            configFile.AppSettings.Settings.Add(key, value);
+            KeyValueConfigurationElement _key = configFile.AppSettings.Settings[key];
+            if ( _key == null)
+            {
+                configFile.AppSettings.Settings.Add(key, value);
+            }
+            else
+            {
+                configFile.AppSettings.Settings[key].Value = value;
+            }
             configFile.Save();
         }
 
@@ -249,16 +254,17 @@ namespace net.nutcore.aliddns
         /// 判断appSettings中是否有指定键名
         /// </summary>
         /// /// <param name="strKey">键名</param>
-        public bool AppSettingsKeyExists(string strKey)
+        public bool isKeyExists(string strKey)
         {
-            foreach (string key in ConfigurationManager.AppSettings.AllKeys)
+            KeyValueConfigurationElement _key = configFile.AppSettings.Settings[strKey];
+            if ( _key == null )
             {
-                if (key == strKey)
-                {
-                    return true;
-                }
+                return false;
             }
-            return false;
+            else
+            {
+                return true;
+            }
         }
 
         /// <summary>

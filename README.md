@@ -19,5 +19,7 @@ accessKeySecret</br>
 实现Ngrok网络穿透，微信开发、APP开发、无公网IP实现外网访问利器。</br>
 
 # 程序界面
-![AliDDNS-UI-01.jpg](/images/AliDDNS-UI-01.JPG "AilDDNS")  </br>
-![AliDDNS-UI-02.jpg](/images/AliDDNS-UI-02.JPG "AliDDNS")
+![image](images/aliddns1.png "AilDDNS")</br>
+![image](images/aliddns2.png "AliDDNS")</br>
+![image](images/aliddns3.png "AliDDNS")</br>
+![image](images/aliddns4.png "AliDDNS")</br>

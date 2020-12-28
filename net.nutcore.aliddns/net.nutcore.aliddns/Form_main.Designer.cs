@@ -112,7 +112,10 @@
             this.columnHeader_subdomain = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.tabPage_other = new System.Windows.Forms.TabPage();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
-            this.checkBox_autoCheckUpdate = new System.Windows.Forms.CheckBox();
+            this.textBox_upgradeUrl = new System.Windows.Forms.TextBox();
+            this.label17 = new System.Windows.Forms.Label();
+            this.button_updateTest = new System.Windows.Forms.Button();
+            this.checkBox_autoUpgrade = new System.Windows.Forms.CheckBox();
             this.label_latestVer = new System.Windows.Forms.Label();
             this.label28 = new System.Windows.Forms.Label();
             this.label_currentVer = new System.Windows.Forms.Label();
@@ -152,7 +155,7 @@
             this.timeSetGroup.Location = new System.Drawing.Point(3, 3);
             this.timeSetGroup.Name = "timeSetGroup";
             this.timeSetGroup.Size = new System.Drawing.Size(427, 85);
-            this.timeSetGroup.TabIndex = 4;
+            this.timeSetGroup.TabIndex = 0;
             this.timeSetGroup.TabStop = false;
             this.timeSetGroup.Text = "启动设置";
             // 
@@ -162,7 +165,7 @@
             this.checkBox_ngrokExists.Location = new System.Drawing.Point(9, 63);
             this.checkBox_ngrokExists.Name = "checkBox_ngrokExists";
             this.checkBox_ngrokExists.Size = new System.Drawing.Size(150, 16);
-            this.checkBox_ngrokExists.TabIndex = 10;
+            this.checkBox_ngrokExists.TabIndex = 2;
             this.checkBox_ngrokExists.Text = "检测ngrok.exe是否存在";
             this.checkBox_ngrokExists.UseVisualStyleBackColor = true;
             this.checkBox_ngrokExists.CheckedChanged += new System.EventHandler(this.checkBox_ngrokExists_CheckedChanged);
@@ -173,7 +176,7 @@
             this.checkBox_ngrokAuto.Location = new System.Drawing.Point(9, 41);
             this.checkBox_ngrokAuto.Name = "checkBox_ngrokAuto";
             this.checkBox_ngrokAuto.Size = new System.Drawing.Size(102, 16);
-            this.checkBox_ngrokAuto.TabIndex = 9;
+            this.checkBox_ngrokAuto.TabIndex = 1;
             this.checkBox_ngrokAuto.Text = "自动启动ngrok";
             this.checkBox_ngrokAuto.UseVisualStyleBackColor = true;
             this.checkBox_ngrokAuto.CheckedChanged += new System.EventHandler(this.checkBox_ngrokAuto_CheckedChanged);
@@ -184,7 +187,7 @@
             this.checkBox_logAutoSave.Location = new System.Drawing.Point(258, 41);
             this.checkBox_logAutoSave.Name = "checkBox_logAutoSave";
             this.checkBox_logAutoSave.Size = new System.Drawing.Size(96, 16);
-            this.checkBox_logAutoSave.TabIndex = 8;
+            this.checkBox_logAutoSave.TabIndex = 4;
             this.checkBox_logAutoSave.Text = "日志自动转储";
             this.checkBox_logAutoSave.UseVisualStyleBackColor = true;
             this.checkBox_logAutoSave.CheckedChanged += new System.EventHandler(this.checkBox_logAutoSave_CheckedChanged);
@@ -195,7 +198,7 @@
             this.checkBox_minimized.Location = new System.Drawing.Point(258, 19);
             this.checkBox_minimized.Name = "checkBox_minimized";
             this.checkBox_minimized.Size = new System.Drawing.Size(96, 16);
-            this.checkBox_minimized.TabIndex = 7;
+            this.checkBox_minimized.TabIndex = 3;
             this.checkBox_minimized.Text = "启动时最小化";
             this.checkBox_minimized.UseVisualStyleBackColor = true;
             this.checkBox_minimized.CheckedChanged += new System.EventHandler(this.checkBox_minimized_CheckedChanged);
@@ -206,7 +209,7 @@
             this.checkBox_autoBoot.Location = new System.Drawing.Point(9, 19);
             this.checkBox_autoBoot.Name = "checkBox_autoBoot";
             this.checkBox_autoBoot.Size = new System.Drawing.Size(132, 16);
-            this.checkBox_autoBoot.TabIndex = 5;
+            this.checkBox_autoBoot.TabIndex = 0;
             this.checkBox_autoBoot.Text = "随系统启动自动运行";
             this.checkBox_autoBoot.UseVisualStyleBackColor = true;
             this.checkBox_autoBoot.CheckedChanged += new System.EventHandler(this.checkBox_autoBoot_CheckedChanged);
@@ -226,7 +229,7 @@
             this.debugMessage.Location = new System.Drawing.Point(213, 46);
             this.debugMessage.Name = "debugMessage";
             this.debugMessage.Size = new System.Drawing.Size(216, 79);
-            this.debugMessage.TabIndex = 5;
+            this.debugMessage.TabIndex = 3;
             this.debugMessage.TabStop = false;
             this.debugMessage.Text = "调试信息";
             // 
@@ -237,7 +240,7 @@
             this.label_TTL.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label_TTL.Name = "label_TTL";
             this.label_TTL.Size = new System.Drawing.Size(41, 12);
-            this.label_TTL.TabIndex = 10;
+            this.label_TTL.TabIndex = 7;
             this.label_TTL.Text = "<null>";
             // 
             // label15
@@ -247,7 +250,7 @@
             this.label15.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label15.Name = "label15";
             this.label15.Size = new System.Drawing.Size(29, 12);
-            this.label15.TabIndex = 9;
+            this.label15.TabIndex = 6;
             this.label15.Text = "TTL:";
             // 
             // textBox_recordId
@@ -257,7 +260,7 @@
             this.textBox_recordId.Name = "textBox_recordId";
             this.textBox_recordId.ReadOnly = true;
             this.textBox_recordId.Size = new System.Drawing.Size(116, 21);
-            this.textBox_recordId.TabIndex = 8;
+            this.textBox_recordId.TabIndex = 1;
             this.textBox_recordId.Text = "<null>";
             // 
             // label_globalValue
@@ -266,7 +269,7 @@
             this.label_globalValue.Location = new System.Drawing.Point(45, 63);
             this.label_globalValue.Name = "label_globalValue";
             this.label_globalValue.Size = new System.Drawing.Size(41, 12);
-            this.label_globalValue.TabIndex = 7;
+            this.label_globalValue.TabIndex = 9;
             this.label_globalValue.Text = "<null>";
             // 
             // label_globalDomainType
@@ -275,7 +278,7 @@
             this.label_globalDomainType.Location = new System.Drawing.Point(96, 44);
             this.label_globalDomainType.Name = "label_globalDomainType";
             this.label_globalDomainType.Size = new System.Drawing.Size(41, 12);
-            this.label_globalDomainType.TabIndex = 6;
+            this.label_globalDomainType.TabIndex = 5;
             this.label_globalDomainType.Text = "<null>";
             // 
             // label12
@@ -284,7 +287,7 @@
             this.label12.Location = new System.Drawing.Point(6, 62);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(41, 12);
-            this.label12.TabIndex = 5;
+            this.label12.TabIndex = 8;
             this.label12.Text = "Value:";
             // 
             // label11
@@ -339,7 +342,7 @@
             this.globalSetGroup.Location = new System.Drawing.Point(213, 129);
             this.globalSetGroup.Name = "globalSetGroup";
             this.globalSetGroup.Size = new System.Drawing.Size(216, 145);
-            this.globalSetGroup.TabIndex = 6;
+            this.globalSetGroup.TabIndex = 4;
             this.globalSetGroup.TabStop = false;
             this.globalSetGroup.Text = "阿里云账号";
             // 
@@ -348,7 +351,7 @@
             this.button_addNewDomain.Location = new System.Drawing.Point(145, 119);
             this.button_addNewDomain.Name = "button_addNewDomain";
             this.button_addNewDomain.Size = new System.Drawing.Size(65, 23);
-            this.button_addNewDomain.TabIndex = 17;
+            this.button_addNewDomain.TabIndex = 10;
             this.button_addNewDomain.Text = "添加域名";
             this.button_addNewDomain.UseVisualStyleBackColor = true;
             this.button_addNewDomain.Click += new System.EventHandler(this.button_addNewDomain_Click);
@@ -360,7 +363,7 @@
             this.label13.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(47, 12);
-            this.label13.TabIndex = 16;
+            this.label13.TabIndex = 6;
             this.label13.Text = "TTL(秒)";
             // 
             // textBox_TTL
@@ -369,7 +372,7 @@
             this.textBox_TTL.Margin = new System.Windows.Forms.Padding(2);
             this.textBox_TTL.Name = "textBox_TTL";
             this.textBox_TTL.Size = new System.Drawing.Size(37, 21);
-            this.textBox_TTL.TabIndex = 15;
+            this.textBox_TTL.TabIndex = 7;
             this.textBox_TTL.Text = "600";
             this.textBox_TTL.Leave += new System.EventHandler(this.textBox_TTL_Leave);
             // 
@@ -378,7 +381,7 @@
             this.button_ShowHide.Location = new System.Drawing.Point(75, 119);
             this.button_ShowHide.Name = "button_ShowHide";
             this.button_ShowHide.Size = new System.Drawing.Size(65, 23);
-            this.button_ShowHide.TabIndex = 14;
+            this.button_ShowHide.TabIndex = 9;
             this.button_ShowHide.Text = "显示录入";
             this.button_ShowHide.UseVisualStyleBackColor = true;
             this.button_ShowHide.Click += new System.EventHandler(this.button_ShowHide_Click);
@@ -388,7 +391,7 @@
             this.button_checkAndSaveConfig.Location = new System.Drawing.Point(5, 119);
             this.button_checkAndSaveConfig.Name = "button_checkAndSaveConfig";
             this.button_checkAndSaveConfig.Size = new System.Drawing.Size(65, 23);
-            this.button_checkAndSaveConfig.TabIndex = 10;
+            this.button_checkAndSaveConfig.TabIndex = 8;
             this.button_checkAndSaveConfig.Text = "测试连接";
             this.button_checkAndSaveConfig.UseVisualStyleBackColor = true;
             this.button_checkAndSaveConfig.Click += new System.EventHandler(this.checkConfig_Click);
@@ -399,7 +402,7 @@
             this.label6.Location = new System.Drawing.Point(6, 73);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(53, 12);
-            this.label6.TabIndex = 5;
+            this.label6.TabIndex = 4;
             this.label6.Text = "完整域名";
             // 
             // textBox_fullDomainName
@@ -407,7 +410,7 @@
             this.textBox_fullDomainName.Location = new System.Drawing.Point(65, 69);
             this.textBox_fullDomainName.Name = "textBox_fullDomainName";
             this.textBox_fullDomainName.Size = new System.Drawing.Size(145, 21);
-            this.textBox_fullDomainName.TabIndex = 4;
+            this.textBox_fullDomainName.TabIndex = 5;
             this.textBox_fullDomainName.Text = "www.xxx.com";
             this.textBox_fullDomainName.Leave += new System.EventHandler(this.fullDomainName_Leave);
             // 
@@ -455,7 +458,7 @@
             this.label8.Location = new System.Drawing.Point(106, 21);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(65, 12);
-            this.label8.TabIndex = 8;
+            this.label8.TabIndex = 2;
             this.label8.Text = "秒更新一次";
             // 
             // textBox_newSeconds
@@ -463,7 +466,7 @@
             this.textBox_newSeconds.Location = new System.Drawing.Point(40, 18);
             this.textBox_newSeconds.Name = "textBox_newSeconds";
             this.textBox_newSeconds.Size = new System.Drawing.Size(60, 21);
-            this.textBox_newSeconds.TabIndex = 7;
+            this.textBox_newSeconds.TabIndex = 1;
             this.textBox_newSeconds.Text = "60";
             this.textBox_newSeconds.Leave += new System.EventHandler(this.newSeconds_Leave);
             // 
@@ -473,7 +476,7 @@
             this.label7.Location = new System.Drawing.Point(5, 21);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(29, 12);
-            this.label7.TabIndex = 6;
+            this.label7.TabIndex = 0;
             this.label7.Text = "每隔";
             // 
             // autoUpdateTimer
@@ -511,7 +514,7 @@
             this.ToolStripMenuItem_checkUpdate.Name = "ToolStripMenuItem_checkUpdate";
             this.ToolStripMenuItem_checkUpdate.Size = new System.Drawing.Size(124, 22);
             this.ToolStripMenuItem_checkUpdate.Text = "检查升级";
-            this.ToolStripMenuItem_checkUpdate.Click += new System.EventHandler(this.ToolStripMenuItem_checkUPdate_Click);
+            this.ToolStripMenuItem_checkUpdate.Click += new System.EventHandler(this.ToolStripMenuItem_checkUpgrade_Click);
             // 
             // groupBox_netstate
             // 
@@ -524,7 +527,7 @@
             this.groupBox_netstate.Location = new System.Drawing.Point(6, 6);
             this.groupBox_netstate.Name = "groupBox_netstate";
             this.groupBox_netstate.Size = new System.Drawing.Size(423, 38);
-            this.groupBox_netstate.TabIndex = 9;
+            this.groupBox_netstate.TabIndex = 0;
             this.groupBox_netstate.TabStop = false;
             this.groupBox_netstate.Text = "网络状态";
             // 
@@ -535,7 +538,7 @@
             this.label_DomainIpStatus.Location = new System.Drawing.Point(371, 19);
             this.label_DomainIpStatus.Name = "label_DomainIpStatus";
             this.label_DomainIpStatus.Size = new System.Drawing.Size(41, 12);
-            this.label_DomainIpStatus.TabIndex = 9;
+            this.label_DomainIpStatus.TabIndex = 5;
             this.label_DomainIpStatus.Text = "未绑定";
             // 
             // label_localIpStatus
@@ -545,7 +548,7 @@
             this.label_localIpStatus.Location = new System.Drawing.Point(156, 19);
             this.label_localIpStatus.Name = "label_localIpStatus";
             this.label_localIpStatus.Size = new System.Drawing.Size(41, 12);
-            this.label_localIpStatus.TabIndex = 8;
+            this.label_localIpStatus.TabIndex = 2;
             this.label_localIpStatus.Text = "未连接";
             // 
             // label_domainIP
@@ -554,7 +557,7 @@
             this.label_domainIP.Location = new System.Drawing.Point(264, 19);
             this.label_domainIP.Name = "label_domainIP";
             this.label_domainIP.Size = new System.Drawing.Size(47, 12);
-            this.label_domainIP.TabIndex = 7;
+            this.label_domainIP.TabIndex = 4;
             this.label_domainIP.Text = "0.0.0.0";
             // 
             // label2
@@ -563,7 +566,7 @@
             this.label2.Location = new System.Drawing.Point(218, 19);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(47, 12);
-            this.label2.TabIndex = 6;
+            this.label2.TabIndex = 3;
             this.label2.Text = "域名IP:";
             // 
             // label_localIP
@@ -572,7 +575,7 @@
             this.label_localIP.Location = new System.Drawing.Point(57, 19);
             this.label_localIP.Name = "label_localIP";
             this.label_localIP.Size = new System.Drawing.Size(47, 12);
-            this.label_localIP.TabIndex = 5;
+            this.label_localIP.TabIndex = 1;
             this.label_localIP.Text = "0.0.0.0";
             // 
             // label1
@@ -581,7 +584,7 @@
             this.label1.Location = new System.Drawing.Point(5, 19);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(53, 12);
-            this.label1.TabIndex = 4;
+            this.label1.TabIndex = 0;
             this.label1.Text = "WAN口IP:";
             // 
             // groupBox_setWanIp
@@ -595,7 +598,7 @@
             this.groupBox_setWanIp.Location = new System.Drawing.Point(6, 46);
             this.groupBox_setWanIp.Name = "groupBox_setWanIp";
             this.groupBox_setWanIp.Size = new System.Drawing.Size(201, 135);
-            this.groupBox_setWanIp.TabIndex = 10;
+            this.groupBox_setWanIp.TabIndex = 1;
             this.groupBox_setWanIp.TabStop = false;
             this.groupBox_setWanIp.Text = "WAN口IP设置";
             // 
@@ -604,7 +607,7 @@
             this.button_addUrl.Location = new System.Drawing.Point(105, 66);
             this.button_addUrl.Name = "button_addUrl";
             this.button_addUrl.Size = new System.Drawing.Size(90, 23);
-            this.button_addUrl.TabIndex = 21;
+            this.button_addUrl.TabIndex = 3;
             this.button_addUrl.Text = "添加网址";
             this.button_addUrl.UseVisualStyleBackColor = true;
             this.button_addUrl.Click += new System.EventHandler(this.button_addUrl_Click);
@@ -616,14 +619,14 @@
             this.maskedTextBox_setIP.Name = "maskedTextBox_setIP";
             this.maskedTextBox_setIP.PromptChar = ' ';
             this.maskedTextBox_setIP.Size = new System.Drawing.Size(106, 21);
-            this.maskedTextBox_setIP.TabIndex = 20;
+            this.maskedTextBox_setIP.TabIndex = 4;
             // 
             // button_setIP
             // 
             this.button_setIP.Location = new System.Drawing.Point(119, 99);
             this.button_setIP.Name = "button_setIP";
             this.button_setIP.Size = new System.Drawing.Size(76, 23);
-            this.button_setIP.TabIndex = 19;
+            this.button_setIP.TabIndex = 5;
             this.button_setIP.Text = "手工指定IP";
             this.button_setIP.UseVisualStyleBackColor = true;
             this.button_setIP.Click += new System.EventHandler(this.button_setIP_Click);
@@ -634,7 +637,7 @@
             this.comboBox_whatIsUrl.Location = new System.Drawing.Point(6, 41);
             this.comboBox_whatIsUrl.Name = "comboBox_whatIsUrl";
             this.comboBox_whatIsUrl.Size = new System.Drawing.Size(189, 20);
-            this.comboBox_whatIsUrl.TabIndex = 18;
+            this.comboBox_whatIsUrl.TabIndex = 1;
             this.comboBox_whatIsUrl.Leave += new System.EventHandler(this.comboBox_whatIsUrl_Leave);
             // 
             // button_whatIsTest
@@ -642,7 +645,7 @@
             this.button_whatIsTest.Location = new System.Drawing.Point(6, 66);
             this.button_whatIsTest.Name = "button_whatIsTest";
             this.button_whatIsTest.Size = new System.Drawing.Size(90, 23);
-            this.button_whatIsTest.TabIndex = 17;
+            this.button_whatIsTest.TabIndex = 2;
             this.button_whatIsTest.Text = "获取WAN口IP";
             this.button_whatIsTest.UseVisualStyleBackColor = true;
             this.button_whatIsTest.Click += new System.EventHandler(this.button_whatIsTest_Click);
@@ -653,7 +656,7 @@
             this.label14.Location = new System.Drawing.Point(7, 22);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(59, 12);
-            this.label14.TabIndex = 16;
+            this.label14.TabIndex = 0;
             this.label14.Text = "查询网址:";
             // 
             // tabControl1
@@ -666,7 +669,7 @@
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(441, 303);
-            this.tabControl1.TabIndex = 11;
+            this.tabControl1.TabIndex = 0;
             // 
             // tabPage_ddns
             // 
@@ -695,7 +698,7 @@
             this.groupBox6.Location = new System.Drawing.Point(6, 185);
             this.groupBox6.Name = "groupBox6";
             this.groupBox6.Size = new System.Drawing.Size(200, 89);
-            this.groupBox6.TabIndex = 11;
+            this.groupBox6.TabIndex = 2;
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "更新设置";
             // 
@@ -705,7 +708,7 @@
             this.checkBox_autoUpdate.Location = new System.Drawing.Point(7, 43);
             this.checkBox_autoUpdate.Name = "checkBox_autoUpdate";
             this.checkBox_autoUpdate.Size = new System.Drawing.Size(72, 16);
-            this.checkBox_autoUpdate.TabIndex = 10;
+            this.checkBox_autoUpdate.TabIndex = 3;
             this.checkBox_autoUpdate.Text = "自动更新";
             this.checkBox_autoUpdate.UseVisualStyleBackColor = true;
             // 
@@ -715,7 +718,7 @@
             this.label3.Location = new System.Drawing.Point(114, 43);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(77, 12);
-            this.label3.TabIndex = 9;
+            this.label3.TabIndex = 5;
             this.label3.Text = "秒后更新记录";
             // 
             // label_nextUpdateSeconds
@@ -724,7 +727,7 @@
             this.label_nextUpdateSeconds.Location = new System.Drawing.Point(84, 44);
             this.label_nextUpdateSeconds.Name = "label_nextUpdateSeconds";
             this.label_nextUpdateSeconds.Size = new System.Drawing.Size(30, 12);
-            this.label_nextUpdateSeconds.TabIndex = 8;
+            this.label_nextUpdateSeconds.TabIndex = 4;
             this.label_nextUpdateSeconds.Text = "60";
             this.label_nextUpdateSeconds.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
@@ -733,7 +736,7 @@
             this.button_updateNow.Location = new System.Drawing.Point(6, 62);
             this.button_updateNow.Name = "button_updateNow";
             this.button_updateNow.Size = new System.Drawing.Size(185, 23);
-            this.button_updateNow.TabIndex = 7;
+            this.button_updateNow.TabIndex = 6;
             this.button_updateNow.Text = "立即更新";
             this.button_updateNow.UseVisualStyleBackColor = true;
             this.button_updateNow.Click += new System.EventHandler(this.updateNow_Click);
@@ -768,7 +771,7 @@
             this.groupBox1.Location = new System.Drawing.Point(238, 6);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(189, 48);
-            this.groupBox1.TabIndex = 0;
+            this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "认证令牌";
             // 
@@ -795,7 +798,7 @@
             this.groupBox2.Location = new System.Drawing.Point(6, 6);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(226, 48);
-            this.groupBox2.TabIndex = 1;
+            this.groupBox2.TabIndex = 0;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "服务端Ngrokd";
             // 
@@ -836,7 +839,7 @@
             this.button_stop.Location = new System.Drawing.Point(360, 180);
             this.button_stop.Name = "button_stop";
             this.button_stop.Size = new System.Drawing.Size(55, 25);
-            this.button_stop.TabIndex = 11;
+            this.button_stop.TabIndex = 6;
             this.button_stop.Text = "停止";
             this.button_stop.UseVisualStyleBackColor = true;
             this.button_stop.Click += new System.EventHandler(this.button_stop_Click);
@@ -846,7 +849,7 @@
             this.button_edit.Location = new System.Drawing.Point(360, 51);
             this.button_edit.Name = "button_edit";
             this.button_edit.Size = new System.Drawing.Size(55, 24);
-            this.button_edit.TabIndex = 10;
+            this.button_edit.TabIndex = 2;
             this.button_edit.Text = "编辑";
             this.button_edit.UseVisualStyleBackColor = true;
             this.button_edit.Click += new System.EventHandler(this.button_edit_Click);
@@ -856,7 +859,7 @@
             this.button_ngrokSave.Location = new System.Drawing.Point(360, 112);
             this.button_ngrokSave.Name = "button_ngrokSave";
             this.button_ngrokSave.Size = new System.Drawing.Size(55, 25);
-            this.button_ngrokSave.TabIndex = 9;
+            this.button_ngrokSave.TabIndex = 4;
             this.button_ngrokSave.Text = "保存";
             this.button_ngrokSave.UseVisualStyleBackColor = true;
             this.button_ngrokSave.Click += new System.EventHandler(this.button_ngrokSave_Click);
@@ -866,7 +869,7 @@
             this.button_ngrokApply.Location = new System.Drawing.Point(360, 149);
             this.button_ngrokApply.Name = "button_ngrokApply";
             this.button_ngrokApply.Size = new System.Drawing.Size(55, 25);
-            this.button_ngrokApply.TabIndex = 8;
+            this.button_ngrokApply.TabIndex = 5;
             this.button_ngrokApply.Text = "启动";
             this.button_ngrokApply.UseVisualStyleBackColor = true;
             this.button_ngrokApply.Click += new System.EventHandler(this.button_ngrokApply_Click);
@@ -876,7 +879,7 @@
             this.button_delete.Location = new System.Drawing.Point(360, 81);
             this.button_delete.Name = "button_delete";
             this.button_delete.Size = new System.Drawing.Size(55, 25);
-            this.button_delete.TabIndex = 7;
+            this.button_delete.TabIndex = 3;
             this.button_delete.Text = "删除";
             this.button_delete.UseVisualStyleBackColor = true;
             this.button_delete.Click += new System.EventHandler(this.button_delete_Click);
@@ -886,7 +889,7 @@
             this.button_addnew.Location = new System.Drawing.Point(360, 20);
             this.button_addnew.Name = "button_addnew";
             this.button_addnew.Size = new System.Drawing.Size(55, 25);
-            this.button_addnew.TabIndex = 6;
+            this.button_addnew.TabIndex = 1;
             this.button_addnew.Text = "增加";
             this.button_addnew.UseVisualStyleBackColor = true;
             this.button_addnew.Click += new System.EventHandler(this.button_addnew_Click);
@@ -905,7 +908,7 @@
             this.listView_ngrok.Location = new System.Drawing.Point(6, 20);
             this.listView_ngrok.Name = "listView_ngrok";
             this.listView_ngrok.Size = new System.Drawing.Size(348, 185);
-            this.listView_ngrok.TabIndex = 5;
+            this.listView_ngrok.TabIndex = 0;
             this.listView_ngrok.UseCompatibleStateImageBehavior = false;
             this.listView_ngrok.View = System.Windows.Forms.View.Details;
             this.listView_ngrok.DoubleClick += new System.EventHandler(this.button_edit_Click);
@@ -956,28 +959,58 @@
             // 
             // groupBox4
             // 
-            this.groupBox4.Controls.Add(this.checkBox_autoCheckUpdate);
+            this.groupBox4.Controls.Add(this.textBox_upgradeUrl);
+            this.groupBox4.Controls.Add(this.label17);
+            this.groupBox4.Controls.Add(this.button_updateTest);
+            this.groupBox4.Controls.Add(this.checkBox_autoUpgrade);
             this.groupBox4.Controls.Add(this.label_latestVer);
             this.groupBox4.Controls.Add(this.label28);
             this.groupBox4.Controls.Add(this.label_currentVer);
             this.groupBox4.Controls.Add(this.label30);
             this.groupBox4.Location = new System.Drawing.Point(3, 94);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(427, 42);
-            this.groupBox4.TabIndex = 11;
+            this.groupBox4.Size = new System.Drawing.Size(427, 72);
+            this.groupBox4.TabIndex = 1;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "升级设置";
             // 
-            // checkBox_autoCheckUpdate
+            // textBox_upgradeUrl
             // 
-            this.checkBox_autoCheckUpdate.AutoSize = true;
-            this.checkBox_autoCheckUpdate.Location = new System.Drawing.Point(258, 18);
-            this.checkBox_autoCheckUpdate.Name = "checkBox_autoCheckUpdate";
-            this.checkBox_autoCheckUpdate.Size = new System.Drawing.Size(96, 16);
-            this.checkBox_autoCheckUpdate.TabIndex = 4;
-            this.checkBox_autoCheckUpdate.Text = "自动检测升级";
-            this.checkBox_autoCheckUpdate.UseVisualStyleBackColor = true;
-            this.checkBox_autoCheckUpdate.CheckedChanged += new System.EventHandler(this.checkBox_autoCheckUpdate_CheckedChanged);
+            this.textBox_upgradeUrl.Location = new System.Drawing.Point(42, 43);
+            this.textBox_upgradeUrl.Name = "textBox_upgradeUrl";
+            this.textBox_upgradeUrl.Size = new System.Drawing.Size(194, 21);
+            this.textBox_upgradeUrl.TabIndex = 7;
+            this.textBox_upgradeUrl.Leave += new System.EventHandler(this.textBox_upgradeUrl_Leave);
+            // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(7, 46);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(35, 12);
+            this.label17.TabIndex = 6;
+            this.label17.Text = "地址:";
+            // 
+            // button_updateTest
+            // 
+            this.button_updateTest.Location = new System.Drawing.Point(258, 40);
+            this.button_updateTest.Name = "button_updateTest";
+            this.button_updateTest.Size = new System.Drawing.Size(96, 25);
+            this.button_updateTest.TabIndex = 5;
+            this.button_updateTest.Text = "立即检测升级";
+            this.button_updateTest.UseVisualStyleBackColor = true;
+            this.button_updateTest.Click += new System.EventHandler(this.button_upgradeTest_Click);
+            // 
+            // checkBox_autoUpgrade
+            // 
+            this.checkBox_autoUpgrade.AutoSize = true;
+            this.checkBox_autoUpgrade.Location = new System.Drawing.Point(258, 18);
+            this.checkBox_autoUpgrade.Name = "checkBox_autoUpgrade";
+            this.checkBox_autoUpgrade.Size = new System.Drawing.Size(96, 16);
+            this.checkBox_autoUpgrade.TabIndex = 4;
+            this.checkBox_autoUpgrade.Text = "自动检测升级";
+            this.checkBox_autoUpgrade.UseVisualStyleBackColor = true;
+            this.checkBox_autoUpgrade.CheckedChanged += new System.EventHandler(this.checkBox_autoUpgrade_CheckedChanged);
             // 
             // label_latestVer
             // 
@@ -1009,7 +1042,7 @@
             // label30
             // 
             this.label30.AutoSize = true;
-            this.label30.Location = new System.Drawing.Point(6, 19);
+            this.label30.Location = new System.Drawing.Point(7, 19);
             this.label30.Name = "label30";
             this.label30.Size = new System.Drawing.Size(59, 12);
             this.label30.TabIndex = 0;
@@ -1033,7 +1066,7 @@
             this.textBox_updateInfo.Name = "textBox_updateInfo";
             this.textBox_updateInfo.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.textBox_updateInfo.Size = new System.Drawing.Size(427, 211);
-            this.textBox_updateInfo.TabIndex = 9;
+            this.textBox_updateInfo.TabIndex = 1;
             // 
             // groupBox5
             // 
@@ -1042,7 +1075,7 @@
             this.groupBox5.Location = new System.Drawing.Point(3, 3);
             this.groupBox5.Name = "groupBox5";
             this.groupBox5.Size = new System.Drawing.Size(427, 41);
-            this.groupBox5.TabIndex = 8;
+            this.groupBox5.TabIndex = 0;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "著作信息";
             // 
@@ -1052,7 +1085,7 @@
             this.label31.Location = new System.Drawing.Point(6, 17);
             this.label31.Name = "label31";
             this.label31.Size = new System.Drawing.Size(95, 12);
-            this.label31.TabIndex = 6;
+            this.label31.TabIndex = 0;
             this.label31.Text = "本程序发布地址:";
             // 
             // linkLabel2
@@ -1061,7 +1094,7 @@
             this.linkLabel2.Location = new System.Drawing.Point(107, 17);
             this.linkLabel2.Name = "linkLabel2";
             this.linkLabel2.Size = new System.Drawing.Size(125, 12);
-            this.linkLabel2.TabIndex = 2;
+            this.linkLabel2.TabIndex = 1;
             this.linkLabel2.TabStop = true;
             this.linkLabel2.Text = "AliDDNS 3.0 之后版本";
             this.linkLabel2.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
@@ -1204,7 +1237,7 @@
         private System.Windows.Forms.Label label_nextUpdateSeconds;
         private System.Windows.Forms.Button button_updateNow;
         private System.Windows.Forms.GroupBox groupBox4;
-        private System.Windows.Forms.CheckBox checkBox_autoCheckUpdate;
+        private System.Windows.Forms.CheckBox checkBox_autoUpgrade;
         private System.Windows.Forms.Label label_latestVer;
         private System.Windows.Forms.Label label28;
         private System.Windows.Forms.Label label_currentVer;
@@ -1218,6 +1251,9 @@
         private System.Windows.Forms.CheckBox checkBox_ngrokExists;
         private System.Windows.Forms.Button button_edit;
         private System.Windows.Forms.Button button_stop;
+        private System.Windows.Forms.TextBox textBox_upgradeUrl;
+        private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.Button button_updateTest;
     }
 }
 
