@@ -65,8 +65,9 @@
             this.autoUpdateTimer = new System.Windows.Forms.Timer(this.components);
             this.notifyIcon_sysTray = new System.Windows.Forms.NotifyIcon(this.components);
             this.contextMenuStrip_sysTrayMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.toolStripMenuItem_Exit = new System.Windows.Forms.ToolStripMenuItem();
-            this.ToolStripMenuItem_checkUpdate = new System.Windows.Forms.ToolStripMenuItem();
+            this.ToolStripMenuItem_Exit = new System.Windows.Forms.ToolStripMenuItem();
+            this.ToolStripMenuItem_checkUpgrade = new System.Windows.Forms.ToolStripMenuItem();
+            this.ToolStripMenuItem_about = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox_netstate = new System.Windows.Forms.GroupBox();
             this.label_DomainIpStatus = new System.Windows.Forms.Label();
             this.label_localIpStatus = new System.Windows.Forms.Label();
@@ -112,6 +113,7 @@
             this.columnHeader_subdomain = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.tabPage_other = new System.Windows.Forms.TabPage();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.checkBox_silence = new System.Windows.Forms.CheckBox();
             this.textBox_upgradeUrl = new System.Windows.Forms.TextBox();
             this.label17 = new System.Windows.Forms.Label();
             this.button_updateTest = new System.Windows.Forms.Button();
@@ -497,24 +499,32 @@
             // 
             this.contextMenuStrip_sysTrayMenu.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.contextMenuStrip_sysTrayMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripMenuItem_Exit,
-            this.ToolStripMenuItem_checkUpdate});
+            this.ToolStripMenuItem_Exit,
+            this.ToolStripMenuItem_checkUpgrade,
+            this.ToolStripMenuItem_about});
             this.contextMenuStrip_sysTrayMenu.Name = "contextMenuStrip1";
-            this.contextMenuStrip_sysTrayMenu.Size = new System.Drawing.Size(125, 48);
+            this.contextMenuStrip_sysTrayMenu.Size = new System.Drawing.Size(125, 70);
             // 
-            // toolStripMenuItem_Exit
+            // ToolStripMenuItem_Exit
             // 
-            this.toolStripMenuItem_Exit.Name = "toolStripMenuItem_Exit";
-            this.toolStripMenuItem_Exit.Size = new System.Drawing.Size(124, 22);
-            this.toolStripMenuItem_Exit.Text = "退出";
-            this.toolStripMenuItem_Exit.Click += new System.EventHandler(this.toolStripMenuItem_Quit_Click);
+            this.ToolStripMenuItem_Exit.Name = "ToolStripMenuItem_Exit";
+            this.ToolStripMenuItem_Exit.Size = new System.Drawing.Size(124, 22);
+            this.ToolStripMenuItem_Exit.Text = "退出";
+            this.ToolStripMenuItem_Exit.Click += new System.EventHandler(this.ToolStripMenuItem_Quit_Click);
             // 
-            // ToolStripMenuItem_checkUpdate
+            // ToolStripMenuItem_checkUpgrade
             // 
-            this.ToolStripMenuItem_checkUpdate.Name = "ToolStripMenuItem_checkUpdate";
-            this.ToolStripMenuItem_checkUpdate.Size = new System.Drawing.Size(124, 22);
-            this.ToolStripMenuItem_checkUpdate.Text = "检查升级";
-            this.ToolStripMenuItem_checkUpdate.Click += new System.EventHandler(this.ToolStripMenuItem_checkUpgrade_Click);
+            this.ToolStripMenuItem_checkUpgrade.Name = "ToolStripMenuItem_checkUpgrade";
+            this.ToolStripMenuItem_checkUpgrade.Size = new System.Drawing.Size(124, 22);
+            this.ToolStripMenuItem_checkUpgrade.Text = "检查升级";
+            this.ToolStripMenuItem_checkUpgrade.Click += new System.EventHandler(this.ToolStripMenuItem_checkUpgrade_Click);
+            // 
+            // ToolStripMenuItem_about
+            // 
+            this.ToolStripMenuItem_about.Name = "ToolStripMenuItem_about";
+            this.ToolStripMenuItem_about.Size = new System.Drawing.Size(124, 22);
+            this.ToolStripMenuItem_about.Text = "关于";
+            this.ToolStripMenuItem_about.Click += new System.EventHandler(this.ToolStripMenuItem_about_Click);
             // 
             // groupBox_netstate
             // 
@@ -711,6 +721,7 @@
             this.checkBox_autoUpdate.TabIndex = 3;
             this.checkBox_autoUpdate.Text = "自动更新";
             this.checkBox_autoUpdate.UseVisualStyleBackColor = true;
+            this.checkBox_autoUpdate.CheckedChanged += new System.EventHandler(this.checkBox_autoUpdate_CheckedChanged);
             // 
             // label3
             // 
@@ -959,6 +970,7 @@
             // 
             // groupBox4
             // 
+            this.groupBox4.Controls.Add(this.checkBox_silence);
             this.groupBox4.Controls.Add(this.textBox_upgradeUrl);
             this.groupBox4.Controls.Add(this.label17);
             this.groupBox4.Controls.Add(this.button_updateTest);
@@ -969,14 +981,25 @@
             this.groupBox4.Controls.Add(this.label30);
             this.groupBox4.Location = new System.Drawing.Point(3, 94);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(427, 72);
+            this.groupBox4.Size = new System.Drawing.Size(427, 99);
             this.groupBox4.TabIndex = 1;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "升级设置";
             // 
+            // checkBox_silence
+            // 
+            this.checkBox_silence.AutoSize = true;
+            this.checkBox_silence.Location = new System.Drawing.Point(258, 20);
+            this.checkBox_silence.Name = "checkBox_silence";
+            this.checkBox_silence.Size = new System.Drawing.Size(96, 16);
+            this.checkBox_silence.TabIndex = 8;
+            this.checkBox_silence.Text = "升级静默完成";
+            this.checkBox_silence.UseVisualStyleBackColor = true;
+            this.checkBox_silence.CheckedChanged += new System.EventHandler(this.checkBox_silence_CheckedChanged);
+            // 
             // textBox_upgradeUrl
             // 
-            this.textBox_upgradeUrl.Location = new System.Drawing.Point(42, 43);
+            this.textBox_upgradeUrl.Location = new System.Drawing.Point(48, 44);
             this.textBox_upgradeUrl.Name = "textBox_upgradeUrl";
             this.textBox_upgradeUrl.Size = new System.Drawing.Size(194, 21);
             this.textBox_upgradeUrl.TabIndex = 7;
@@ -985,7 +1008,7 @@
             // label17
             // 
             this.label17.AutoSize = true;
-            this.label17.Location = new System.Drawing.Point(7, 46);
+            this.label17.Location = new System.Drawing.Point(7, 47);
             this.label17.Name = "label17";
             this.label17.Size = new System.Drawing.Size(35, 12);
             this.label17.TabIndex = 6;
@@ -993,7 +1016,7 @@
             // 
             // button_updateTest
             // 
-            this.button_updateTest.Location = new System.Drawing.Point(258, 40);
+            this.button_updateTest.Location = new System.Drawing.Point(258, 42);
             this.button_updateTest.Name = "button_updateTest";
             this.button_updateTest.Size = new System.Drawing.Size(96, 25);
             this.button_updateTest.TabIndex = 5;
@@ -1004,18 +1027,18 @@
             // checkBox_autoUpgrade
             // 
             this.checkBox_autoUpgrade.AutoSize = true;
-            this.checkBox_autoUpgrade.Location = new System.Drawing.Point(258, 18);
+            this.checkBox_autoUpgrade.Location = new System.Drawing.Point(9, 20);
             this.checkBox_autoUpgrade.Name = "checkBox_autoUpgrade";
-            this.checkBox_autoUpgrade.Size = new System.Drawing.Size(96, 16);
+            this.checkBox_autoUpgrade.Size = new System.Drawing.Size(108, 16);
             this.checkBox_autoUpgrade.TabIndex = 4;
-            this.checkBox_autoUpgrade.Text = "自动检测升级";
+            this.checkBox_autoUpgrade.Text = "自动检测新版本";
             this.checkBox_autoUpgrade.UseVisualStyleBackColor = true;
             this.checkBox_autoUpgrade.CheckedChanged += new System.EventHandler(this.checkBox_autoUpgrade_CheckedChanged);
             // 
             // label_latestVer
             // 
             this.label_latestVer.AutoSize = true;
-            this.label_latestVer.Location = new System.Drawing.Point(185, 19);
+            this.label_latestVer.Location = new System.Drawing.Point(213, 77);
             this.label_latestVer.Name = "label_latestVer";
             this.label_latestVer.Size = new System.Drawing.Size(47, 12);
             this.label_latestVer.TabIndex = 3;
@@ -1024,7 +1047,7 @@
             // label28
             // 
             this.label28.AutoSize = true;
-            this.label28.Location = new System.Drawing.Point(125, 19);
+            this.label28.Location = new System.Drawing.Point(148, 77);
             this.label28.Name = "label28";
             this.label28.Size = new System.Drawing.Size(59, 12);
             this.label28.TabIndex = 2;
@@ -1033,7 +1056,7 @@
             // label_currentVer
             // 
             this.label_currentVer.AutoSize = true;
-            this.label_currentVer.Location = new System.Drawing.Point(71, 19);
+            this.label_currentVer.Location = new System.Drawing.Point(72, 77);
             this.label_currentVer.Name = "label_currentVer";
             this.label_currentVer.Size = new System.Drawing.Size(47, 12);
             this.label_currentVer.TabIndex = 1;
@@ -1042,7 +1065,7 @@
             // label30
             // 
             this.label30.AutoSize = true;
-            this.label30.Location = new System.Drawing.Point(7, 19);
+            this.label30.Location = new System.Drawing.Point(7, 77);
             this.label30.Name = "label30";
             this.label30.Size = new System.Drawing.Size(59, 12);
             this.label30.TabIndex = 0;
@@ -1182,7 +1205,7 @@
         private System.Windows.Forms.TextBox textBox_recordId;
         private System.Windows.Forms.NotifyIcon notifyIcon_sysTray;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip_sysTrayMenu;
-        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_Exit;
+        private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_Exit;
         private System.Windows.Forms.GroupBox groupBox_netstate;
         private System.Windows.Forms.Label label_DomainIpStatus;
         private System.Windows.Forms.Label label_localIpStatus;
@@ -1204,7 +1227,7 @@
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.Label label13;
         private System.Windows.Forms.TextBox textBox_TTL;
-        private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_checkUpdate;
+        private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_checkUpgrade;
         private System.Windows.Forms.CheckBox checkBox_ngrokAuto;
         private System.Windows.Forms.Button button_addNewDomain;
         private System.Windows.Forms.Button button_addUrl;
@@ -1254,6 +1277,8 @@
         private System.Windows.Forms.TextBox textBox_upgradeUrl;
         private System.Windows.Forms.Label label17;
         private System.Windows.Forms.Button button_updateTest;
+        private System.Windows.Forms.CheckBox checkBox_silence;
+        private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_about;
     }
 }
 

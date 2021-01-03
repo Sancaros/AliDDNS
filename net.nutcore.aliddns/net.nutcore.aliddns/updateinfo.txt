@@ -1,3 +1,9 @@
+v3.9.1.0
+
+1、添加升级组件，来源：https://github.com/knightswarrior/AppAutoUpdater 
+2、修复小BUG。
+
+
 v3.9.0.0
 
 1、重新设计窗口标签布局。

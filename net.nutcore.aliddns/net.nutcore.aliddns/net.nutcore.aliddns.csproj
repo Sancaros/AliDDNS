@@ -62,6 +62,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>.\aliyun-net-sdk-Core.dll</HintPath>
     </Reference>
+    <Reference Include="AutoUpdater">
+      <HintPath>.\AutoUpdater.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net40\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
@@ -95,6 +98,7 @@
     <Compile Include="Form_tunnelEdit.Designer.cs">
       <DependentUpon>Form_tunnelEdit.cs</DependentUpon>
     </Compile>
+    <Compile Include="Settings.cs" />
     <Compile Include="YamlHelper.cs" />
     <Compile Include="EncryptHelper.cs" />
     <Compile Include="Form_main.cs">

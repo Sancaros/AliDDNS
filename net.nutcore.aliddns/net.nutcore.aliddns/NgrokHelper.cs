@@ -11,30 +11,41 @@ namespace net.nutcore.aliddns
 {
     internal class NgrokHelper
     {
+        #region The private fields
         private static readonly string ngrokExecutable = "ngrok.exe";
         private static readonly string ngrokYamlConfig = "ngrok.cfg";
-        public static readonly string currentDirectory = Path.GetDirectoryName(Application.ExecutablePath);
-        public static readonly string ngrokExecutableFile = Path.Combine(currentDirectory, ngrokExecutable);
-        public static readonly string ngrokConfigFile = Path.Combine(currentDirectory, ngrokYamlConfig);
+        private static readonly string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
+        private static readonly string ngrokExecutableFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ngrokExecutable);
+        private static readonly string ngrokConfigFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ngrokYamlConfig);
         private static string localHost = "localhost:4040";
+        #endregion
+
         public Config ngrokConfig = new Config();
 
         public NgrokHelper()
         {
-            if (!File.Exists(ngrokConfigFile))
+            try
             {
-                this.CreateDefaultConfig(ngrokConfigFile);
-                this.Load();
-            }
-            else
-            {
-                FileInfo filereader = new FileInfo(ngrokConfigFile);
-                if (filereader.Length == 0)
+                if (!File.Exists(ngrokConfigFile))
                 {
                     this.CreateDefaultConfig(ngrokConfigFile);
+                    this.LoadConfig(ngrokConfigFile);
                 }
-                this.Load();
+                else
+                {
+                    FileInfo filereader = new FileInfo(ngrokConfigFile);
+                    if (filereader.Length == 0)
+                    {
+                        this.CreateDefaultConfig(ngrokConfigFile);
+                    }
+                    this.LoadConfig(ngrokConfigFile);
+                }
             }
+            catch (Exception errMsg)
+            {
+                Console.WriteLine("NgrokHelper() running error! " + errMsg);
+            }
+
         }
 
         public class Config
@@ -135,14 +146,14 @@ namespace net.nutcore.aliddns
             }
         }
 
-        public void Load()
+        public void LoadConfig(string file)
         {
-            var yaml = File.ReadAllText(ngrokConfigFile);
+            var yaml = File.ReadAllText(file);
             var deserializer = new Deserializer();
             this.ngrokConfig = deserializer.Deserialize<Config>(yaml); 
         }
 
-        public void Save()
+        public void SaveConfig()
         {
             var serializer = new SerializerBuilder().Build();
             var yaml = serializer.Serialize(this.ngrokConfig);

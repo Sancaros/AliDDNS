@@ -12,6 +12,8 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using static Aliyun.Acs.Alidns.Model.V20150109.DescribeSubDomainRecordsResponse;
+using KnightsWarriorAutoupdater;
+using System.Xml;
 
 namespace net.nutcore.aliddns
 {
@@ -24,6 +26,8 @@ namespace net.nutcore.aliddns
         private NgrokHelper ngrok = new NgrokHelper();
         //初始化appconfig操作类
         private AppConfigHelper cfg = new AppConfigHelper();
+        //初始化升级功能类
+        private AutoUpdater autoUpdater = new AutoUpdater();
 
         public Form_main()
         {
@@ -122,8 +126,7 @@ namespace net.nutcore.aliddns
             {                
                 //执行upgrade
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "正在自动检测升级！ " + "\r\n");
-                Thread newThread = new Thread(new ParameterizedThreadStart(simpleUpgrade));
-                newThread.Start(cfg.GetAppSetting("upgradeUrl"));
+                Updater();
             }
             else
             {
@@ -173,24 +176,17 @@ namespace net.nutcore.aliddns
 
                 textBox_TTL.Text = cfg.GetAppSetting("TTL").ToString();
 
-                if (cfg.GetAppSetting("autoUpgrade").ToString() == "On") checkBox_autoUpgrade.Checked = true;
-                else checkBox_autoUpgrade.Checked = false;
-
                 if (cfg.GetAppSetting("ngrokauto").ToString() == "On") checkBox_ngrokAuto.Checked = true;
                 else checkBox_ngrokAuto.Checked = false;
 
                 if (cfg.GetAppSetting("ngrokexists").ToString() == "On") checkBox_ngrokExists.Checked = true;
                 else checkBox_ngrokExists.Checked = false;
 
-                if (cfg.isKeyExists("upgradeUrl"))
-                {
-                    textBox_upgradeUrl.Text = cfg.GetAppSetting("upgradeUrl").ToString();
-                }
-                else
-                {
-                    cfg.SetAppSetting("upgradeUrl", "https://dev.51zyy.cn/aliddns/updater.xml");
-                    textBox_upgradeUrl.Text = cfg.GetAppSetting("upgradeUrl").ToString();
-                }
+                if (autoUpdater.config.Enabled) checkBox_autoUpgrade.Checked = true;
+                else checkBox_autoUpgrade.Checked = false;
+                if (autoUpdater.config.Silence) checkBox_silence.Checked = true;
+                else checkBox_silence.Checked = false;
+                textBox_upgradeUrl.Text = autoUpdater.config.ServerUrl.ToString();
 
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "设置文件读取成功！" + "\r\n");
                 return true;
@@ -577,10 +573,17 @@ namespace net.nutcore.aliddns
             }
         }
 
-        private void toolStripMenuItem_Quit_Click(object sender, EventArgs e)
+        private void ToolStripMenuItem_Quit_Click(object sender, EventArgs e)
         {
             ngrok.Stop();
             this.Dispose();
+        }
+
+        private void ToolStripMenuItem_about_Click(object sender, EventArgs e)
+        {
+            this.Show();
+            this.WindowState = FormWindowState.Normal;
+            this.tabControl1.SelectedTab = tabPage_about;
         }
 
         private void notifyIcon_sysTray_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -823,14 +826,7 @@ namespace net.nutcore.aliddns
         private void ToolStripMenuItem_checkUpgrade_Click(object sender, EventArgs e)
         {
             textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "正在检测升级！ " + "\r\n");
-            simpleUpgrade(textBox_upgradeUrl.Text);
-
-            Version remoteVer = new Version(label_latestVer.Text);
-            Version localVer = new Version(label_currentVer.Text);
-            if (remoteVer > localVer)
-                MessageBox.Show("发现新版本: " + remoteVer);
-            else
-                MessageBox.Show("没有新版本，无需升级！");
+            Updater();
         }
 
         private void checkBox_ngrokAuto_CheckedChanged(object sender, EventArgs e)
@@ -961,12 +957,14 @@ namespace net.nutcore.aliddns
         {
             if (checkBox_autoUpgrade.Checked == true)
             {
-                cfg.SetAppSetting("autoUpgrade", "On");
+                autoUpdater.config.Enabled = true;
+                autoUpdater.config.SaveConfig(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConstFile.FILENAME));
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "软件自动检测升级启用！" + "\r\n");
             }
             else
             {
-                cfg.SetAppSetting("autoUpgrade", "Off");
+                autoUpdater.config.Enabled = false;
+                autoUpdater.config.SaveConfig(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConstFile.FILENAME));
                 textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "软件自动检测升级关闭！" + "\r\n");
             }
         }
@@ -1083,7 +1081,7 @@ namespace net.nutcore.aliddns
             ngrok.ngrokConfig.server_addr = textBox_serverAddr.Text.ToString();
             ngrok.ngrokConfig.tunnels = tunnel_saved;
 
-            ngrok.Save();
+            ngrok.SaveConfig();
         }
 
         private void button_addnew_Click(object sender, EventArgs e)
@@ -1160,12 +1158,14 @@ namespace net.nutcore.aliddns
         private void button_upgradeTest_Click(object sender, EventArgs e)
         {
             textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "正在检测升级！ " + "\r\n");
-            simpleUpgrade(textBox_upgradeUrl.Text);
+            //simpleUpgrade(textBox_upgradeUrl.Text);
+            Updater();
         }
 
         private void textBox_upgradeUrl_Leave(object sender, EventArgs e)
         {
-            cfg.SetAppSetting("upgradeUrl", this.textBox_upgradeUrl.Text.ToString());
+            autoUpdater.config.ServerUrl = this.textBox_upgradeUrl.Text.ToString();
+            autoUpdater.config.SaveConfig(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConstFile.FILENAME));
             textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "升级地址修改成功！" + "\r\n");
         }
 
@@ -1188,6 +1188,7 @@ namespace net.nutcore.aliddns
                         this.textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "获取远程版本信息成功，远程版本: " + txt.ToString() + "\r\n");
                     };
                     this.Invoke(appendText, remoteVer[1].ToString());
+                    //this.autoUpdater();
                 }
                 else if(remoteVer[0].ToString() == "NULL")
                 {
@@ -1214,6 +1215,7 @@ namespace net.nutcore.aliddns
                 {
                     this.label_latestVer.Text = remoteVer[1].ToString();
                     this.textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "获取远程版本信息成功，远程版本: " + remoteVer[1].ToString() + "\r\n");
+                    //this.autoUpdater();
                 }
                 else if (remoteVer[0].ToString() == "NULL")
                 {
@@ -1223,6 +1225,79 @@ namespace net.nutcore.aliddns
                 {
                     this.textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "获取远程版本信息出错：" + remoteVer[1].ToString() + "\r\n");
                 }
+            }
+        }
+
+        private void Updater()
+        {
+            #region check and download new version program
+            bool bHasError = false;
+            //IAutoUpdater autoUpdater = new AutoUpdater();
+            try
+            {
+                autoUpdater.Update();
+            }
+            catch (WebException exp)
+            {
+                //MessageBox.Show("Can not find the specified resource");
+                this.textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "访问网络出错：" + exp + "\r\n");
+                bHasError = true;
+            }
+            catch (XmlException exp)
+            {
+                bHasError = true;
+                //MessageBox.Show("Download the upgrade file error");
+                this.textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "下载升级文件出错：" + exp + "\r\n");
+            }
+            catch (NotSupportedException exp)
+            {
+                bHasError = true;
+                //MessageBox.Show("Upgrade address configuration error");
+                this.textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "升级地址设置错误：" + exp + "\r\n");
+            }
+            catch (ArgumentException exp)
+            {
+                bHasError = true;
+                //MessageBox.Show("Download the upgrade file error");
+                this.textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "下载升级文件出错：" + exp + "\r\n");
+            }
+            catch (Exception exp)
+            {
+                bHasError = true;
+                //MessageBox.Show("An error occurred during the upgrade process");
+                this.textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "升级过程中发现错误：" + exp + "\r\n");
+            }
+            finally
+            {
+                if (bHasError == true)
+                {
+                    try
+                    {
+                        autoUpdater.RollBack();
+                    }
+                    catch (Exception exp)
+                    {
+                        //Log the message to your file or database
+                        this.textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "升级回滚出错：" + exp + "\r\n");
+                    }
+                }
+            }
+            #endregion
+        }
+
+        private void checkBox_silence_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox_silence.Checked == true)
+            {
+                autoUpdater.config.Silence = true;
+                autoUpdater.config.SaveConfig(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConstFile.FILENAME));
+                textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "设置升级过程静默开启！" + "\r\n");
+            }
+            else
+            {
+                autoUpdater.config.Silence = false;
+                autoUpdater.config.SaveConfig(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConstFile.FILENAME));
+                textBox_log.AppendText(System.DateTime.Now.ToString() + " " + "设置升级过程静默关闭！" + "\r\n");
             }
         }
     }
