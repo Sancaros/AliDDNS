@@ -437,9 +437,20 @@ namespace net.nutcore.aliddns
         private bool addDomainRecord()
         {
             string[] symbols = new string[1] { "." };
-            string[] data = textBox_fullDomainName.Text.Split(symbols, 30, StringSplitOptions.RemoveEmptyEntries);
-            string domainRR = data[0];
-            string domainName = data[1] + "." + data[2];
+            string[] data = textBox_fullDomainName.Text.Split(symbols, 60, StringSplitOptions.RemoveEmptyEntries);
+            string domainRR;
+            string domainName;
+            if (data.Length >= 3)
+            {
+                domainRR = data[0];
+                domainName = data[1] + "." + data[2];
+                // 程序的其余处理逻辑
+            }
+            else
+            {
+                domainRR = data[0];
+                domainName = data[0] + "." + data[1];
+            }
 
             clientProfile = DefaultProfile.GetProfile("cn-hangzhou", textBox_accessKeyId.Text.ToString(), textBox_accessKeySecret.Text.ToString());
             client = new DefaultAcsClient(clientProfile);
